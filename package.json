@@ -1,0 +1,27 @@
+{
+	"author": {
+		"name": "Mikael 'Lilleman' Göransson",
+		"email": "lilleman@larvit.se",
+		"url": "http://github.com/larvit/larvitbase"
+	},
+	"private": true,
+	"contributors": [],
+	"dependencies": {
+		"formidable": "x",
+		"serve-static": "x"
+	},
+	"description": "node.js base framework",
+	"devDependencies": {},
+	"keywords": [
+		"framework",
+		"micro"
+	],
+	"main": "base.js",
+	"name": "larvitbase",
+	"repository": {
+		"url": "https://github.com/larvit/larvitbase",
+		"type": "git"
+	},
+	"version": "0.0.1beta",
+	"readmeFilename": "README.md"
+}
