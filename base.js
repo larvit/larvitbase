@@ -12,12 +12,9 @@ createServer(require(appPath + '/config/routes.json'));
 
 // Actually create the server
 function createServer(customRoutes) {
-	router = require('larvitrouter')({'customRoutes': customRoutes, 'debug': serverConf.debug});
+	router = require('larvitrouter')({'customRoutes': customRoutes});
 
 	http.createServer(function(request, response) {
-		if (serverConf.debug === true)
-			console.time('Complete request to ' + request.url);
-
 		router.resolve(request, function(err){
 			if (err) {
 				console.error(err);
@@ -26,13 +23,6 @@ function createServer(customRoutes) {
 
 			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
 			parseRequest(request, response);
-
-			// Benchmark this whole request + response
-			if (serverConf.debug === true) {
-				response.on('finish', function () {
-					console.timeEnd('Complete request to ' + request.url);
-				});
-			}
 		});
 	}).listen(serverConf.port, '127.0.0.1');
 }
