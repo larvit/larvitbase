@@ -4,12 +4,16 @@
 		"email": "lilleman@larvit.se",
 		"url": "http://github.com/larvit/larvitbase"
 	},
-	"private": true,
+	"private": false,
 	"contributors": [],
 	"dependencies": {
 		"path": "x",
 		"formidable": "x",
-		"serve-static": "x"
+		"serve-static": "x",
+		"winston": "x",
+		"cuid": "x",
+		"utils-merge": "x",
+		"larvitutils": "x"
 	},
 	"description": "node.js base framework",
 	"devDependencies": {},
@@ -23,6 +27,6 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.0.1beta",
+	"version": "0.0.3beta",
 	"readmeFilename": "README.md"
 }
