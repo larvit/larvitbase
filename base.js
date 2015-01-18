@@ -13,22 +13,14 @@ var path        = require('path'),
     router;
 
 function executeController(request, response) {
-	function sendToClient(err, request, response, data) {
-		router.sendToClient(err, request, response, data, function() {
-			var timer = utils.hrtimeToMs(request.startTime);
-
-			log.debug('larvitbase: Request #' + request.cuid + ' complete in ' + timer + 'ms');
-		});
-	}
-
 	if (request.staticFilename !== undefined) {
 		log.debug('larvitbase: Serving static file: ' + request.staticFilename);
 
 		serveStatic(request, response);
 	} else if (request.controllerName !== undefined) {
-		require(appPath + '/controllers/' + request.controllerName).run(request, response, sendToClient);
+		require(appPath + '/controllers/' + request.controllerName).run(request, response, router.sendToClient);
 	} else {
-		require(appPath + '/controllers/404').run(request, response, sendToClient);
+		require(appPath + '/controllers/404').run(request, response, router.sendToClient);
 	}
 }
 
@@ -77,6 +69,12 @@ exports = module.exports = function(options) {
 		request.cuid      = cuid();
 		request.startTime = process.hrtime();
 		log.debug('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
+
+		response.on('finish', function() {
+			var timer = utils.hrtimeToMs(request.startTime);
+
+			log.debug('larvitbase: Request #' + request.cuid + ' complete in ' + timer + 'ms');
+		});
 
 		router.resolve(request, function(err) {
 			if (err) {
