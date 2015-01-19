@@ -133,3 +133,7 @@ The example head section, ./public/views/tmpl/head.tmpl, can look like this:
     	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     	<title><%= title %></title>
     </head>
+    
+### Check that it works
+
+    $ node server.js
