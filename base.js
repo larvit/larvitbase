@@ -36,7 +36,7 @@ function parseRequest(request, response) {
 
 		form.parse(request, function(err, fields, files){
 			if (err) {
-				log.error(err.message, err);
+				log.error('larvitbase: ' + err.message, err);
 				response.writeHead(500, {'content-type': 'text/plain'});
 				response.end('Internal server error');
 			} else {

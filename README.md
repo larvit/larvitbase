@@ -70,6 +70,12 @@ It need to have the following structure:
     	// This is the data we send back to the callback
     	// It can be calls to other subcontrollers, database calls etc
     	var data = {
+
+            // The _global will be appended on each template partials data
+            '_global': {
+                'warthog': false
+            },
+
     		'head': {
     			'title': 'foobar'
     		},
@@ -93,11 +99,11 @@ A view is used to match the data from the controller with one or more templates.
     	partials = [
     		{
     			'partName': 'aboveBody',
-    			'tmplName': 'head',
+    			'tmplPath': 'head',
     			'data': data.head
     		},
     		{
-    			'tmplName': 'default',
+    			'tmplPath': 'default',
     			'data': data
     		}
     	];
