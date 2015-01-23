@@ -59,7 +59,7 @@ The second will match exactly "/mupp" and will load up the controller at ./contr
 
 A controller needs to fill a few criterias.
 
-It must reside in ./controller/_controllerName_.js - for example ./controller/default.js to match the above "/" route.
+It must reside in ./controllers/_controllerName_.js - for example ./controllers/default.js to match the above "/" route.
 
 It need to have the following structure:
 
@@ -79,7 +79,7 @@ It need to have the following structure:
     		'head': {
     			'title': 'foobar'
     		},
-    		foo': 'bar'
+    		'foo': 'bar'
     	};
 
     	callback(null, request, response, data);
@@ -139,3 +139,7 @@ The example head section, ./public/views/tmpl/head.tmpl, can look like this:
     	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     	<title><%= title %></title>
     </head>
+    
+### Check that it works
+
+    $ node ./server.js
