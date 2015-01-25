@@ -7,7 +7,6 @@
 	"private": false,
 	"contributors": [],
 	"dependencies": {
-		"path": "x",
 		"formidable": "x",
 		"serve-static": "x",
 		"winston": "x",
@@ -27,6 +26,6 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.0.5beta",
+	"version": "0.0.6beta",
 	"readmeFilename": "README.md"
 }
