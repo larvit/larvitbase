@@ -25,25 +25,60 @@ function executeController(request, response) {
 }
 
 /**
+ * Checks if a request is parseable by formidable
+ *
+ * @param obj request - standard request object
+ * @return boolean
+ */
+function formidableParseable(request) {
+	// For reference this is taken from formidable/lib/incoming_form.js - IncomingForm.prototype._parseContentType definition
+
+	if (request.method !== 'POST') {
+		return false;
+	}
+
+	if ( ! request.headers['content-type']) {
+		return false;
+	}
+
+	if (request.headers['content-type'].match(/octet-stream/i)) {
+		return true;
+	}
+
+	if (request.headers['content-type'].match(/urlencoded/i)) {
+		return true;
+	}
+
+	if (request.headers['content-type'].match(/multipart/i) && request.headers['content-type'].match(/boundary=(?:"([^"]+)"|([^;]+))/i)) {
+		return true;
+	}
+
+	if (request.headers['content-type'].match(/json/i)) {
+		return true;
+	}
+
+	// No matches
+	return false;
+}
+
+/**
  * Parse request
  * Fetch POST data etc
  */
 function parseRequest(request, response) {
 	var form;
 
-	if (request.method === 'POST') {
+	if (formidableParseable(request)) {
 		form = new formidable.IncomingForm();
 
 		form.parse(request, function(err, fields, files){
 			if (err) {
-				log.error('larvitbase: ' + err.message, err);
-				response.writeHead(500, {'content-type': 'text/plain'});
-				response.end('Internal server error');
+				log.warn('larvitbase: parseRequest() - ' + err.message, err);
 			} else {
 				request.formFields = fields;
 				request.formFiles  = files;
-				executeController(request, response);
 			}
+			executeController(request, response);
 		});
 	} else {
 		// No parsing needed, just execute the controller
