@@ -71,7 +71,7 @@ function parseRequest(request, response) {
 	if (formidableParseable(request)) {
 		form = new formidable.IncomingForm();
 
-		form.parse(request, function(err, fields, files){
+		form.parse(request, function(err, fields, files) {
 			if (err) {
 				log.warn('larvitbase: parseRequest() - ' + err.message, err);
 			} else {
