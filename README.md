@@ -12,48 +12,16 @@ In your application root directory, create a file named server.js with the follo
 
     'use strict';
 
-    var customRoutes = {}; // Follows the same syntax as the routes.json file below
-
-    require('larvitbase')(customRoutes);
-
-You also need to do the configuration below before you have a working system
-
-### Configuration
-
-Two configuration files are required:
-
-* ./config/server.json
-* ./config/routes.json
-
-#### server.json
-
-Example:
-
-    {
-        "host":        "127.0.0.1",
-    	"port":        8001,
-    	"pubFilePath": "./public"
-    }
-
-This will set up the server on port 8001 and server static files from ./public
-
-#### routes.json
-
-Example:
-
-    [
-    	{
-    		"regex":          "^/$",
-    		"controllerName": "default"
-    	},
-    	{
-    		"regex":          "^/mupp$",
-    		"controllerName": "mupp"
-    	}
-    ]
-
-The first will match exactly "/" and will load up the controller at ./controllers/default.js
-The second will match exactly "/mupp" and will load up the controller at ./controllers/mupp.js
+    // Given config parameters is the default, all can be omitted
+    require('larvitbase')({
+    	'host':        '127.0.0.1',
+    	'port':        8001,
+    	'pubFilePath': './public',
+    	'customRoutes': [{
+    		'regex': '^/$', // Regexp to be matched for the given URL
+    		'controllerName': 'default' // Name of the file in ./controllers/<filename>.js
+    	}]
+    });
 
 ### Controllers
 
@@ -139,7 +107,7 @@ The example head section, ./public/views/tmpl/head.tmpl, can look like this:
     	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     	<title><%= title %></title>
     </head>
-    
+
 ### Check that it works
 
     $ node ./server.js

@@ -2,21 +2,24 @@
 
 var path        = require('path'),
     appPath     = path.dirname(require.main.filename),
-    serverConf  = require(appPath + '/config/server.json'),
     http        = require('http'),
-    serveStatic = require('serve-static')(serverConf.pubFilePath, {'index': false, 'maxAge': 1000}),
     formidable  = require('formidable'),
     log         = require('winston'),
     cuid        = require('cuid'),
     merge       = require('utils-merge'),
     utils       = require('larvitutils'),
+    options,
     router;
 
 function executeController(request, response) {
 	if (request.staticFilename !== undefined) {
 		log.debug('larvitbase: Serving static file: ' + request.staticFilename);
 
-		serveStatic(request, response);
+		if (options.serveStatic instanceof Function) {
+			options.serveStatic(request, response);
+		} else {
+			log.error('larvitbase: Static file found on URL, but no valid serveStatic function available');
+		}
 	} else if (request.controllerName !== undefined) {
 		require(appPath + '/controllers/' + request.controllerName).run(request, response, router.sendToClient);
 	} else {
@@ -86,17 +89,24 @@ function parseRequest(request, response) {
 	}
 }
 
-exports = module.exports = function(options) {
-	log.info('larvitbase: Creating server on ' + serverConf.host + ':' + serverConf.port);
-
+exports = module.exports = function(customOptions) {
 	// Set default options
 	options = merge({
-		'pubFilePath':  serverConf.pubFilePath,
+		'pubFilePath':  './public',
 		'tmplDir':      'tmpl',
-		'port':         serverConf.port,
-		'host':         serverConf.host,
+		'port':         8001,
 		'customRoutes': []
-	}, options);
+	}, customOptions);
+
+	// Setup static file serving
+	if (options.serveStatic === undefined) {
+		log.info('larvitbase: No custom serveStatic option found, loading default.');
+		options.serveStatic = require('serve-static')(options.pubFilePath, {'index': false, 'maxAge': 1000});
+	} else if ( ! (options.serveStatic instanceof Function)) {
+		log.error('larvitbase: serveStatic parameter must be a function');
+	}
+
+	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
 	router = require('larvitrouter')({'customRoutes': options.customRoutes});
 
