@@ -11,7 +11,16 @@ var path        = require('path'),
     options,
     router;
 
+/**
+ * Needed callback for loaded middleware to harmonize with express middleware next() functions
+ */
+function logLoadedMiddleware() {
+	log.silly('larvitbase: logLoadedMiddleware() - Middleware ran...');
+}
+
 function executeController(request, response) {
+	var i;
+
 	if (request.staticFilename !== undefined) {
 		log.debug('larvitbase: Serving static file: ' + request.staticFilename);
 
@@ -20,10 +29,24 @@ function executeController(request, response) {
 		} else {
 			log.error('larvitbase: Static file found on URL, but no valid serveStatic function available');
 		}
-	} else if (request.controllerName !== undefined) {
-		require(appPath + '/controllers/' + request.controllerName).run(request, response, router.sendToClient);
 	} else {
-		require(appPath + '/controllers/404').run(request, response, router.sendToClient);
+		// Load middleware
+		if (options.middleware instanceof Array) {
+			i = 0;
+			while (options.middleware[i] !== undefined) {
+				if (typeof options.middleware[i] === 'function') {
+					options.middleware[i](request, response, logLoadedMiddleware);
+				}
+
+				i ++;
+			}
+		}
+
+		if (request.controllerName !== undefined) {
+			require(appPath + '/controllers/' + request.controllerName).run(request, response, router.sendToClient);
+		} else {
+			require(appPath + '/controllers/404').run(request, response, router.sendToClient);
+		}
 	}
 }
 
@@ -95,7 +118,8 @@ exports = module.exports = function(customOptions) {
 		'pubFilePath':  './public',
 		'tmplDir':      'tmpl',
 		'port':         8001,
-		'customRoutes': []
+		'customRoutes': [],
+		'middleware':   []
 	}, customOptions);
 
 	// Setup static file serving
