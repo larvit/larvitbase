@@ -7,15 +7,18 @@
 	"private": false,
 	"contributors": [],
 	"dependencies": {
-		"formidable": "x",
-		"serve-static": "x",
-		"winston": "x",
-		"cuid": "x",
-		"utils-merge": "x",
-		"larvitutils": "x"
+		"formidable": "latest",
+		"serve-static": "latest",
+		"winston": "latest",
+		"cuid": "latest",
+		"utils-merge": "latest",
+		"larvitutils": "latest"
 	},
 	"description": "node.js base framework",
-	"devDependencies": {},
+	"devDependencies": {
+		"mocha": "latest",
+		"node-mocks-http": "latest"
+	},
 	"keywords": [
 		"framework",
 		"micro"
@@ -26,6 +29,6 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.0.9beta",
+	"version": "0.0.10beta",
 	"readmeFilename": "README.md"
 }
