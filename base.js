@@ -111,7 +111,7 @@ exports = module.exports = function(customOptions) {
 					request.formFields = fields;
 					request.formFiles  = files;
 				}
-				returnObj.executeController(request, response);
+				returnObj.executeController(request, response, sendToClient);
 			});
 		} else {
 			// No parsing needed, just execute the controller
