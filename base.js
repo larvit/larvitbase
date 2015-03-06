@@ -157,7 +157,11 @@ exports = module.exports = function(customOptions) {
 		'middleware':      []
 	}, customOptions);
 
-	options.controllersPath = path.join(appPath, options.controllersPath);
+	if (options.controllersPath[0] === '/') {
+		options.controllersPath = path.resolve(options.controllersPath);
+	} else {
+		options.controllersPath = path.join(appPath, options.controllersPath);
+	}
 
 	// Setup static file serving
 	if (options.serveStatic === undefined) {
