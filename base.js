@@ -58,7 +58,7 @@ exports = module.exports = function(customOptions) {
 		return false;
 	};
 
-	returnObj.executeController = function(request, response) {
+	returnObj.executeController = function(request, response, sendToClient) {
 		var i;
 
 		if (request.staticFilename !== undefined) {
@@ -83,9 +83,9 @@ exports = module.exports = function(customOptions) {
 			}
 
 			if (request.controllerName !== undefined) {
-				require(options.controllersPath + '/' + request.controllerName).run(request, response, router.sendToClient);
+				require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
 			} else {
-				require(options.controllersPath + '/404').run(request, response, router.sendToClient);
+				require(options.controllersPath + '/404').run(request, response, sendToClient);
 			}
 		}
 	};
@@ -93,8 +93,12 @@ exports = module.exports = function(customOptions) {
 	/**
 	 * Parse request
 	 * Fetch POST data etc
+	 *
+	 * @param obj request - standard request object
+	 * @param obj response - standard response object
+	 * @param func sendToClient(err, request, response, data) where data is the data that should be sent
 	 */
-	returnObj.parseRequest = function(request, response) {
+	returnObj.parseRequest = function(request, response, sendToClient) {
 		var form;
 
 		if (returnObj.formidableParseable(request)) {
@@ -111,7 +115,7 @@ exports = module.exports = function(customOptions) {
 			});
 		} else {
 			// No parsing needed, just execute the controller
-			returnObj.executeController(request, response);
+			returnObj.executeController(request, response, sendToClient);
 		}
 	};
 
@@ -139,7 +143,7 @@ exports = module.exports = function(customOptions) {
 			}
 
 			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-			returnObj.parseRequest(request, response);
+			returnObj.parseRequest(request, response, router.sendToClient);
 		});
 	};
 
