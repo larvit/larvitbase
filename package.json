@@ -12,7 +12,8 @@
 		"winston": "latest",
 		"cuid": "latest",
 		"utils-merge": "latest",
-		"larvitutils": "latest"
+		"larvitutils": "latest",
+		"larvitrouter": "latest"
 	},
 	"description": "node.js base framework",
 	"devDependencies": {
@@ -29,6 +30,6 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.0.13beta",
+	"version": "0.0.14beta",
 	"readmeFilename": "README.md"
 }
