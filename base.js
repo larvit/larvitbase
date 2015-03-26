@@ -15,13 +15,6 @@ exports = module.exports = function(customOptions) {
 	var returnObj = {};
 
 	/**
-	 * Needed callback for loaded middleware to harmonize with express middleware next() functions
-	 */
-	returnObj.logLoadedMiddleware = function() {
-		log.silly('larvitbase: logLoadedMiddleware() - Middleware ran...');
-	};
-
-	/**
 	 * Checks if a request is parseable by formidable
 	 *
 	 * @param obj request - standard request object
@@ -59,34 +52,44 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.executeController = function(request, response, sendToClient) {
-		var i;
+
+		function loadMiddleware(i) {
+			if (i === undefined) {
+				i = 0;
+			}
+
+			options.middleware[i](request, response, function() {
+				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded middleware nr ' + i);
+
+				if (options.middleware[i + 1] !== undefined) {
+					loadMiddleware(i + 1);
+				} else {
+					if (request.controllerName !== undefined) {
+						require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
+					} else {
+						require(options.controllersPath + '/404').run(request, response, sendToClient);
+					}
+				}
+			});
+		}
 
 		if (request.staticFilename !== undefined) {
-			log.debug('larvitbase: Serving static file: ' + request.staticFilename);
+			log.debug('larvitbase: Request #' + request.cuid + ' - Serving static file: ' + request.staticFilename);
 
 			if (options.serveStatic instanceof Function) {
 				options.serveStatic(request, response);
 			} else {
-				log.error('larvitbase: Static file found on URL, but no valid serveStatic function available');
+				log.error('larvitbase: Request #' + request.cuid + ' - Static file found on URL, but no valid serveStatic function available');
 			}
 		} else {
-			// Load middleware
-			if (options.middleware instanceof Array) {
-				i = 0;
-				while (options.middleware[i] !== undefined) {
-					if (typeof options.middleware[i] === 'function') {
-						options.middleware[i](request, response, returnObj.logLoadedMiddleware);
-					}
-
-					i ++;
-				}
+			// Make sure there always is a dummy middleware for simpler code below
+			if ( ! (options.middleware instanceof Array)) {
+				options.middleware = Array(function(request, response, callback) {
+					callback();
+				});
 			}
 
-			if (request.controllerName !== undefined) {
-				require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
-			} else {
-				require(options.controllersPath + '/404').run(request, response, sendToClient);
-			}
+			loadMiddleware();
 		}
 	};
 
@@ -106,7 +109,7 @@ exports = module.exports = function(customOptions) {
 
 			form.parse(request, function(err, fields, files) {
 				if (err) {
-					log.warn('larvitbase: parseRequest() - ' + err.message, err);
+					log.warn('larvitbase: Request #' + request.cuid + ' - parseRequest() - ' + err.message, err);
 				} else {
 					request.formFields = fields;
 					request.formFiles  = files;
