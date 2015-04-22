@@ -53,9 +53,22 @@ exports = module.exports = function(customOptions) {
 
 	returnObj.executeController = function(request, response, sendToClient) {
 
+		function runController() {
+			if (request.controllerName !== undefined) {
+				require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
+			} else {
+				require(options.controllersPath + '/404').run(request, response, sendToClient);
+			}
+		}
+
 		function loadMiddleware(i) {
 			if (i === undefined) {
 				i = 0;
+			}
+
+			if (options.middleware[i] === undefined) {
+				runController();
+				return;
 			}
 
 			options.middleware[i](request, response, function() {
@@ -64,11 +77,7 @@ exports = module.exports = function(customOptions) {
 				if (options.middleware[i + 1] !== undefined) {
 					loadMiddleware(i + 1);
 				} else {
-					if (request.controllerName !== undefined) {
-						require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
-					} else {
-						require(options.controllersPath + '/404').run(request, response, sendToClient);
-					}
+					runController();
 				}
 			});
 		}
