@@ -23,6 +23,20 @@ In your application root directory, create a file named server.js with the follo
     	}]
     });
 
+The default behaviour for sending the controller data as JSON directly to the client or as HTML after parsed templates within the router can be omitted by passing a custom sendToClient() function in the options.
+
+This example prints the controller data as plain text to the browser:
+
+    'use strict';
+
+    require('larvitbase')({
+    	'sendToClient': function(err, request, response, data) {
+    		response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    		response.writeHead(200);
+    		response.end(data.toString());
+    	}
+    });
+
 ### Controllers
 
 A controller needs to fill a few criterias.

@@ -66,7 +66,7 @@ exports = module.exports = function(customOptions) {
 				i = 0;
 			}
 
-			if (options.middleware[i] === undefined) {
+			if (( ! options.middleware instanceof Array) || options.middleware[i] === undefined) {
 				runController();
 				return;
 			}
@@ -91,13 +91,6 @@ exports = module.exports = function(customOptions) {
 				log.error('larvitbase: Request #' + request.cuid + ' - Static file found on URL, but no valid serveStatic function available');
 			}
 		} else {
-			// Make sure there always is a dummy middleware for simpler code below
-			if ( ! (options.middleware instanceof Array)) {
-				options.middleware = Array(function(request, response, callback) {
-					callback();
-				});
-			}
-
 			loadMiddleware();
 		}
 	};
@@ -155,7 +148,8 @@ exports = module.exports = function(customOptions) {
 			}
 
 			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-			returnObj.parseRequest(request, response, router.sendToClient);
+			response.sendToClient = options.sendToClient;
+			returnObj.parseRequest(request, response, response.sendToClient);
 		});
 	};
 
@@ -186,6 +180,10 @@ exports = module.exports = function(customOptions) {
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
 	router = require('larvitrouter')({'customRoutes': options.customRoutes});
+
+	if (options.sendToClient === undefined) {
+		options.sendToClient = router.sendToClient;
+	}
 
 	http.createServer(returnObj.serveRequest).listen(options.port, options.host);
 
