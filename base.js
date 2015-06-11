@@ -52,13 +52,50 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.executeController = function(request, response, sendToClient) {
+		var controllerData;
+
+		function loadAfterware(i, callback) {
+			if (typeof i === 'function') {
+				callback = i;
+				i        = 0;
+			}
+
+			if (( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
+				callback(null, request, response, controllerData);
+				return;
+			}
+
+			options.afterware[i](request, response, controllerData, function() {
+				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded afterware nr ' + i);
+
+				if (options.afterware[i + 1] !== undefined) {
+					loadAfterware(i + 1);
+				} else {
+					callback(null, request, response, controllerData);
+				}
+			});
+		}
+
+		function runSendToClient(err, request, response, data) {
+			// Set this to the outer clojure to be accessible for other functions
+			controllerData = data;
+
+			// If there is an error, do not run afterware at all,
+			// just call sendToClient to send this error information to the client
+			if (err) {
+				sendToClient(err, request, response, data);
+				return;
+			}
+
+			loadAfterware(sendToClient);
+		}
 
 		function runController() {
-			if (request.controllerName !== undefined) {
-				require(options.controllersPath + '/' + request.controllerName).run(request, response, sendToClient);
-			} else {
-				require(options.controllersPath + '/404').run(request, response, sendToClient);
+			if (request.controllerName === undefined) {
+				request.controllerName = '404';
 			}
+
+			require(options.controllersPath + '/' + request.controllerName).run(request, response, runSendToClient);
 		}
 
 		function loadMiddleware(i) {
