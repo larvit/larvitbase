@@ -60,7 +60,7 @@ exports = module.exports = function(customOptions) {
 				i        = 0;
 			}
 
-			if (( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
+			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
 				callback(null, request, response, controllerData);
 				return;
 			}
