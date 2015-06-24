@@ -60,7 +60,7 @@ exports = module.exports = function(customOptions) {
 				i        = 0;
 			}
 
-			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
+			if (( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
 				callback(null, request, response, controllerData);
 				return;
 			}
@@ -222,7 +222,16 @@ exports = module.exports = function(customOptions) {
 		options.sendToClient = router.sendToClient;
 	}
 
-	http.createServer(returnObj.serveRequest).listen(options.port, options.host);
+	var server = http.createServer(returnObj.serveRequest);
+  log.info('Server trying to listen to: ' + options.host + " on port: " + options.port);
+  server.on('error', function(e){
+      if(e.code === 'ENOTFOUND'){
+        log.error("Can't bind to host: " + options.host + " at port: " + options.port);
+        log.verbose("You most likely want to use 'localhost'");
+      }
+      throw e;
+  });
 
+  server.listen(options.port,options.host);
 	return returnObj;
 };
