@@ -8,6 +8,7 @@ var path        = require('path'),
     cuid        = require('cuid'),
     merge       = require('utils-merge'),
     utils       = require('larvitutils'),
+    server,
     options,
     router;
 
@@ -222,7 +223,19 @@ exports = module.exports = function(customOptions) {
 		options.sendToClient = router.sendToClient;
 	}
 
-	http.createServer(returnObj.serveRequest).listen(options.port, options.host);
+	server = http.createServer(returnObj.serveRequest);
+	log.info('Http server trying to listen to: ' + options.host + ' on port: ' + options.port);
+
+	server.on('error', function(err) {
+		if (err.code === 'ENOTFOUND') {
+			log.error('Can\'t bind to host: ' + options.host + ' at port: ' + options.port);
+			log.verbose('You most likely want to use "localhost"');
+		}
+
+		throw err;
+	});
+
+	server.listen(options.port, options.host);
 
 	return returnObj;
 };
