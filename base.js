@@ -224,12 +224,11 @@ exports = module.exports = function(customOptions) {
 	}
 
 	server = http.createServer(returnObj.serveRequest);
-	log.info('Http server trying to listen to: ' + options.host + ' on port: ' + options.port);
 
 	server.on('error', function(err) {
 		if (err.code === 'ENOTFOUND') {
-			log.error('Can\'t bind to host: ' + options.host + ' at port: ' + options.port);
-			log.verbose('You most likely want to use "localhost"');
+			log.error('larvitbase: Can\'t bind to ' + options.host + ':' + options.port);
+			log.verbose('larvitbase: You most likely want to use "localhost"');
 		}
 
 		throw err;
