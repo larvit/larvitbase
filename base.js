@@ -217,7 +217,11 @@ exports = module.exports = function(customOptions) {
 
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
-	router = require('larvitrouter')({'customRoutes': options.customRoutes});
+	router = require('larvitrouter')({
+		'customRoutes':    options.customRoutes,
+		'controllersPath': options.controllersPath,
+		'pubFilePath':     options.pubFilePath
+	});
 
 	if (options.sendToClient === undefined) {
 		options.sendToClient = router.sendToClient;
