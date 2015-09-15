@@ -1,13 +1,14 @@
 'use strict';
 
-var path        = require('path'),
-    appPath     = path.dirname(require.main.filename),
-    http        = require('http'),
-    formidable  = require('formidable'),
-    log         = require('winston'),
-    cuid        = require('cuid'),
-    merge       = require('utils-merge'),
-    utils       = require('larvitutils'),
+var path       = require('path'),
+    appPath    = path.dirname(require.main.filename),
+    http       = require('http'),
+    formidable = require('formidable'),
+    log        = require('winston'),
+    cuid       = require('cuid'),
+    merge      = require('utils-merge'),
+    utils      = require('larvitutils'),
+    send       = require('send'),
     server,
     options,
     router;
@@ -53,7 +54,8 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.executeController = function(request, response, sendToClient) {
-		var controllerData;
+		var controllerData,
+		    staticSender;
 
 		function loadAfterware(i, callback) {
 			if (typeof i === 'function') {
@@ -123,11 +125,17 @@ exports = module.exports = function(customOptions) {
 		if (request.staticFilename !== undefined) {
 			log.debug('larvitbase: Request #' + request.cuid + ' - Serving static file: ' + request.staticFilename);
 
-			if (options.serveStatic instanceof Function) {
-				options.serveStatic(request, response);
-			} else {
-				log.error('larvitbase: Request #' + request.cuid + ' - Static file found on URL, but no valid serveStatic function available');
-			}
+			staticSender = send(request, request.staticFilename, {
+				'index': false,
+				'root': '/'
+			});
+
+			// Send (pipe) the file over to the client via the response object
+			staticSender.pipe(response);
+
+			staticSender.on('error', function(err) {
+				log.error('larvitbase: Request #' + request.cuid + ' Error from send(): ' + err.message);
+			});
 		} else {
 			loadMiddleware();
 		}
@@ -193,8 +201,8 @@ exports = module.exports = function(customOptions) {
 
 	// Set default options
 	options = merge({
-		'controllersPath': './controllers',
-		'pubFilePath':     './public',
+		'controllersPath': 'controllers',
+		'pubFilePath':     'public',
 		'tmplDir':         'tmpl',
 		'port':            8001,
 		'customRoutes':    [],
@@ -203,16 +211,6 @@ exports = module.exports = function(customOptions) {
 
 	if (options.controllersPath[0] === '/') {
 		options.controllersPath = path.resolve(options.controllersPath);
-	} else {
-		options.controllersPath = path.join(appPath, options.controllersPath);
-	}
-
-	// Setup static file serving
-	if (options.serveStatic === undefined) {
-		log.info('larvitbase: No custom serveStatic option found, loading default.');
-		options.serveStatic = require('serve-static')(options.pubFilePath, {'index': false, 'maxAge': 1000});
-	} else if ( ! (options.serveStatic instanceof Function)) {
-		log.error('larvitbase: serveStatic parameter must be a function');
 	}
 
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
