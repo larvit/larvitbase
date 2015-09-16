@@ -94,11 +94,9 @@ exports = module.exports = function(customOptions) {
 		}
 
 		function runController() {
-			if (request.controllerName === undefined) {
-				request.controllerName = '404';
-			}
+			log.debug('larvitbase: Request #' + request.cuid + ' - Running controller: ' + request.controllerName + ' with path: ' + request.controllerFullPath);
 
-			require(options.controllersPath + '/' + request.controllerName).run(request, response, runSendToClient);
+			require(request.controllerFullPath).run(request, response, runSendToClient);
 		}
 
 		function loadMiddleware(i) {
@@ -189,8 +187,13 @@ exports = module.exports = function(customOptions) {
 
 		router.resolve(request, function(err) {
 			if (err) {
-				// Could not be resolved, this is logged in router.reslove()
-				request.controllerName = '404';
+				// Could not be resolved, this is logged in router.resolve()
+				// This includes that the 404 controller could not be resolve. Send hard coded 404 response
+				response.writeHead(404, {'Content-Type': 'text/plain'});
+				response.write('404 Not Found\n');
+				response.end();
+
+				return;
 			}
 
 			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
