@@ -204,8 +204,9 @@ exports = module.exports = function(customOptions) {
 
 	returnObj.sendToClient = function(err, request, response, data) {
 		var viewPath = options.viewPath + '/' + request.controllerName,
-		    view,
-		    splittedPath;
+		    splittedPath,
+		    fullPath,
+		    view;
 
 		function sendErrorToClient() {
 			response.writeHead(500, {'Content-Type': 'text/plain'});
@@ -289,30 +290,24 @@ exports = module.exports = function(customOptions) {
 		if (request.type === 'html') {
 
 			// Checking for custom view file
-			router.fileExists(viewPath + '.js', function(err, exists, fullPath) {
-				if (err) {
-					err.message = 'larvitbase: router.fileExists() failed. View full path: "' + fullPath + '"';
-					log.error(err.message);
-					return;
-				}
+			fullPath = router.fileExists(viewPath + '.js');
 
-				if (exists) {
-					view = require(fullPath);
+			if (fullPath !== false) {
+				view = require(fullPath);
 
-					view.run(data, function(err, htmlStr) {
-						if (err) {
-							err.message = 'larvitbase: view.run() failed. View full path: "' + fullPath + '"';
-							log.error(err.message);
-							sendErrorToClient();
-							return;
-						}
+				view.run(data, function(err, htmlStr) {
+					if (err) {
+						err.message = 'larvitbase: view.run() failed. View full path: "' + fullPath + '"';
+						log.error(err.message);
+						sendErrorToClient();
+						return;
+					}
 
-						sendHtmlToClient(htmlStr);
-					});
-				} else {
-					sendJsonToClient();
-				}
-			});
+					sendHtmlToClient(htmlStr);
+				});
+			} else {
+				sendJsonToClient();
+			}
 		} else if (request.type === 'json') {
 			sendJsonToClient();
 		}
