@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Default template</title>
+		<title><%= head.title %></title>
 	</head>
 	<body>
 		<h1>Default route</h1>
@@ -8,7 +8,8 @@
 		<p>This controller lives in &lt;modulepath&gt;/larvitbase/controllers/default.js.<br />If you copy it to &lt;application path&gt;/controllers/default.js and edit this new copy, it will override the module one.</p>
 		<h2>Template</h2>
 		<p>You can find this template file at &lt;modulepath&gt;/larvitbase/public/tmpl/default.tmpl.<br />Copy it to &lt;application path&gt;/public/tmpl/default.tmpl and edit it to you needs just as the controller.</p>
-		<h2>View</h2>
-		<p>To define exact what data should be rendered, use multiple templates in one view etc, you can configure this in the view file. You will find the default view file in &lt;modulepath&gt;/larvitbase/public/views/default.js.<br />Just like the otheres, simply copy it to &lt;application path&gt;/public/views/default.js and edit it to your likings.</p>
+		<h2>Partial</h2>
+		<p>Below is the rendering of a partial:</p>
+		<%= _.render('inc.partial', {'foo': foo}) %>
 	</body>
 </html>

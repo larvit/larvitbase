@@ -1,7 +1,6 @@
 'use strict';
 
 var path       = require('path'),
-    appPath    = path.dirname(require.main.filename),
     http       = require('http'),
     formidable = require('formidable'),
     log        = require('winston'),
@@ -11,6 +10,7 @@ var path       = require('path'),
     send       = require('send'),
     server,
     options,
+    view,
     router;
 
 exports = module.exports = function(customOptions) {
@@ -203,10 +203,7 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.sendToClient = function(err, request, response, data) {
-		var viewPath = options.viewPath + '/' + request.controllerName,
-		    splittedPath,
-		    fullPath,
-		    view;
+		var splittedPath;
 
 		function sendErrorToClient() {
 			response.writeHead(500, {'Content-Type': 'text/plain'});
@@ -248,11 +245,6 @@ exports = module.exports = function(customOptions) {
 			data = {};
 		}
 
-		// Custom view file found
-		if (data.viewFile !== undefined) {
-			viewPath = options.viewPath + '/' + data.viewFile;
-		}
-
 		if ( ! request.urlParsed) {
 			err = new Error('larvitbase: request.urlParsed is not set');
 			log.error(err.message);
@@ -288,27 +280,8 @@ exports = module.exports = function(customOptions) {
 		}
 
 		if (request.type === 'html') {
-
-			// Checking for custom view file
-			fullPath = router.fileExists(viewPath + '.js');
-
-			if (fullPath !== false) {
-				view = require(fullPath);
-
-				view.run(data, function(err, htmlStr) {
-					if (err) {
-						err.message = 'larvitbase: view.run() failed. View full path: "' + fullPath + '"';
-						log.error(err.message);
-						sendErrorToClient();
-						return;
-					}
-
-					sendHtmlToClient(htmlStr);
-				});
-			} else {
-				sendJsonToClient();
-			}
-		} else if (request.type === 'json') {
+			sendHtmlToClient(view.render(request.controllerName, data));
+		} else {
 			sendJsonToClient();
 		}
 	};
@@ -317,7 +290,6 @@ exports = module.exports = function(customOptions) {
 	options = merge({
 		'controllersPath': 'controllers',
 		'pubFilePath':     'public',
-		'viewPath':        'public/views',
 		'tmplDir':         'public/tmpl',
 		'port':            8001,
 		'customRoutes':    [],
@@ -328,10 +300,6 @@ exports = module.exports = function(customOptions) {
 		options.controllersPath = path.resolve(options.controllersPath);
 	}
 
-	if (options.viewPath[0] === '/') {
-		options.viewPath = path.resolve(options.viewPath);
-	}
-
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
 	router = require('larvitrouter')({
@@ -339,6 +307,8 @@ exports = module.exports = function(customOptions) {
 		'controllersPath': options.controllersPath,
 		'pubFilePath':     options.pubFilePath
 	});
+
+	view = require('larvitviews')(options);
 
 	if (options.sendToClient !== undefined) {
 		returnObj.sendToClient = options.sendToClient;
