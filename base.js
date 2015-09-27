@@ -53,18 +53,17 @@ exports = module.exports = function(customOptions) {
 		return false;
 	};
 
-	returnObj.executeController = function(request, response, sendToClient) {
+	returnObj.executeController = function(request, response) {
 		var controllerData,
 		    staticSender;
 
-		function loadAfterware(i, callback) {
-			if (typeof i === 'function') {
-				callback = i;
-				i        = 0;
+		function loadAfterware(i) {
+			if (i === undefined) {
+				i = 0;
 			}
 
 			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
-				callback(null, request, response, controllerData);
+				response.sendToClient(null, request, response, controllerData);
 				return;
 			}
 
@@ -74,7 +73,7 @@ exports = module.exports = function(customOptions) {
 				if (options.afterware[i + 1] !== undefined) {
 					loadAfterware(i + 1);
 				} else {
-					callback(null, request, response, controllerData);
+					response.sendToClient(null, request, response, controllerData);
 				}
 			});
 		}
@@ -86,11 +85,11 @@ exports = module.exports = function(customOptions) {
 			// If there is an error, do not run afterware at all,
 			// just call sendToClient to send this error information to the client
 			if (err) {
-				sendToClient(err, request, response, data);
+				response.sendToClient(err, request, response, data);
 				return;
 			}
 
-			loadAfterware(returnObj.sendToClient);
+			loadAfterware();
 		}
 
 		function runController() {
@@ -147,7 +146,7 @@ exports = module.exports = function(customOptions) {
 	 * @param obj response - standard response object
 	 * @param func sendToClient(err, request, response, data) where data is the data that should be sent
 	 */
-	returnObj.parseRequest = function(request, response, sendToClient) {
+	returnObj.parseRequest = function(request, response) {
 		var form;
 
 		if (returnObj.formidableParseable(request)) {
@@ -160,11 +159,11 @@ exports = module.exports = function(customOptions) {
 					request.formFields = fields;
 					request.formFiles  = files;
 				}
-				returnObj.executeController(request, response, sendToClient);
+				returnObj.executeController(request, response);
 			});
 		} else {
 			// No parsing needed, just execute the controller
-			returnObj.executeController(request, response, sendToClient);
+			returnObj.executeController(request, response);
 		}
 	};
 
@@ -196,9 +195,10 @@ exports = module.exports = function(customOptions) {
 				return;
 			}
 
+			response.sendToClient = returnObj.sendToClient;
+
 			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-			response.sendToClient = options.sendToClient;
-			returnObj.parseRequest(request, response, response.sendToClient);
+			returnObj.parseRequest(request, response);
 		});
 	};
 
@@ -225,7 +225,7 @@ exports = module.exports = function(customOptions) {
 				jsonStr = JSON.stringify(data);
 			} catch(err) {
 				response.statusCode = 500;
-				log.error('larvitbase: returnObj.sendToClient() - sendJsonToClient() - Could not transform data to JSON: "' + err.message + '" JSON.inspect(): "' + require('util').inspect(data, {'depth': null}));
+				log.error('larvitbase: sendToClient() - sendJsonToClient() - Could not transform data to JSON: "' + err.message + '" JSON.inspect(): "' + require('util').inspect(data, {'depth': null}));
 				jsonStr = '{"error": "' + err.message + '"}';
 			}
 
@@ -284,8 +284,11 @@ exports = module.exports = function(customOptions) {
 
 		// For redirect statuses, do not send a body at all
 		if (response.statusCode.toString().substring(0, 1) === '3') {
+			log.debug('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" starting with 3, ending response.');
 			response.end();
 			return;
+		} else {
+			log.silly('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" not starting with 3, continue.');
 		}
 
 		if (request.type === 'html') {
