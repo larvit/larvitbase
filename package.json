@@ -19,8 +19,12 @@
 	"description": "node.js base framework",
 	"devDependencies": {
 		"mocha": "latest",
-		"node-mocks-http": "latest"
+		"pre-git": "latest"
 	},
+	"pre-commit": [
+		"npm test",
+		"eslint ./"
+	],
 	"keywords": [
 		"framework",
 		"micro"
@@ -31,6 +35,14 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.0.28",
-	"readmeFilename": "README.md"
+	"version": "0.1.0",
+	"readmeFilename": "README.md",
+	"scripts": {
+		"test": "mocha"
+	},
+	"license": "MIT",
+	"maintainers": [{
+		"name": "lilleman",
+		"email": "lilleman@larvit.se"
+	}]
 }
