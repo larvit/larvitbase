@@ -2,6 +2,7 @@
 
 var path       = require('path'),
     http       = require('http'),
+    events     = require('events'),
     formidable = require('formidable'),
     log        = require('winston'),
     cuid       = require('cuid'),
@@ -14,7 +15,7 @@ var path       = require('path'),
     router;
 
 exports = module.exports = function(customOptions) {
-	var returnObj = {};
+	var returnObj = new events.EventEmitter();
 
 	/**
 	 * Checks if a request is parseable by formidable
@@ -54,33 +55,30 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.executeController = function(request, response) {
-		var controllerData,
-		    staticSender;
-
-		function loadAfterware(i) {
+		response.loadAfterware = function(i) {
 			if (i === undefined) {
 				i = 0;
 			}
 
 			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
-				response.sendToClient(null, request, response, controllerData);
+				response.sendToClient(null, request, response, response.controllerData);
 				return;
 			}
 
-			options.afterware[i](request, response, controllerData, function() {
+			options.afterware[i](request, response, response.controllerData, function() {
 				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded afterware nr ' + i);
 
 				if (options.afterware[i + 1] !== undefined) {
-					loadAfterware(i + 1);
+					response.loadAfterware(i + 1);
 				} else {
-					response.sendToClient(null, request, response, controllerData);
+					response.sendToClient(null, request, response, response.controllerData);
 				}
 			});
-		}
+		};
 
-		function runSendToClient(err, request, response, data) {
+		response.runSendToClient = function(err, request, response, data) {
 			// Set this to the outer clojure to be accessible for other functions
-			controllerData = data;
+			response.controllerData = data;
 
 			// If there is an error, do not run afterware at all,
 			// just call sendToClient to send this error information to the client
@@ -89,22 +87,22 @@ exports = module.exports = function(customOptions) {
 				return;
 			}
 
-			loadAfterware();
-		}
+			response.loadAfterware();
+		};
 
-		function runController() {
+		response.runController = function() {
 			log.debug('larvitbase: Request #' + request.cuid + ' - Running controller: ' + request.controllerName + ' with path: ' + request.controllerFullPath);
 
-			require(request.controllerFullPath).run(request, response, runSendToClient);
-		}
+			require(request.controllerFullPath).run(request, response, response.runSendToClient);
+		};
 
-		function loadMiddleware(i) {
+		response.loadMiddleware = function(i) {
 			if (i === undefined) {
 				i = 0;
 			}
 
 			if (( ! options.middleware instanceof Array) || options.middleware[i] === undefined) {
-				runController();
+				response.runController();
 				return;
 			}
 
@@ -112,29 +110,37 @@ exports = module.exports = function(customOptions) {
 				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded middleware nr ' + i);
 
 				if (options.middleware[i + 1] !== undefined) {
-					loadMiddleware(i + 1);
+					response.loadMiddleware(i + 1);
 				} else {
-					runController();
+					response.runController();
 				}
 			});
-		}
+		};
 
-		if (request.staticFilename !== undefined) {
-			log.debug('larvitbase: Request #' + request.cuid + ' - Serving static file: ' + request.staticFilename);
+		response.next = function() {
+			if (request.staticFilename !== undefined) {
+				log.debug('larvitbase: Request #' + request.cuid + ' - Serving static file: ' + request.staticFilename);
 
-			staticSender = send(request, request.staticFilename, {
-				'index': false,
-				'root': '/'
-			});
+				response.staticSender = send(request, request.staticFilename, {
+					'index': false,
+					'root': '/'
+				});
 
-			// Send (pipe) the file over to the client via the response object
-			staticSender.pipe(response);
+				// Send (pipe) the file over to the client via the response object
+				response.staticSender.pipe(response);
 
-			staticSender.on('error', function(err) {
-				log.error('larvitbase: Request #' + request.cuid + ' Error from send(): ' + err.message);
-			});
-		} else {
-			loadMiddleware();
+				response.staticSender.on('error', function(err) {
+					log.error('larvitbase: Request #' + request.cuid + ' Error from send(): ' + err.message);
+				});
+			} else {
+				response.loadMiddleware();
+			}
+		};
+
+		// Expose this session to the outer world
+		if ( ! returnObj.emit('httpSession', request, response)) {
+			log.debug('larvitbase: executeController() - No listener found for httpSession event, running response.next() automatically');
+			response.next();
 		}
 	};
 
@@ -173,7 +179,7 @@ exports = module.exports = function(customOptions) {
 	 * @param obj request - standard request object
 	 * @param obj respose - standard response object
 	 */
-	returnObj.serveRequest = function(request, response) {
+	function serveRequest(request, response) {
 		request.cuid      = cuid();
 		request.startTime = process.hrtime();
 		log.debug('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
@@ -187,7 +193,7 @@ exports = module.exports = function(customOptions) {
 		router.resolve(request, function(err) {
 			if (err) {
 				// Could not be resolved, this is logged in router.resolve()
-				// This includes that the 404 controller could not be resolve. Send hard coded 404 response
+				// This includes that the 404 controller could not be resolved. Send hard coded 404 response.
 				response.writeHead(404, {'Content-Type': 'text/plain'});
 				response.write('404 Not Found\n');
 				response.end();
@@ -260,6 +266,15 @@ exports = module.exports = function(customOptions) {
 			return;
 		}
 
+		// For redirect statuses, do not send a body at all
+		if (response.statusCode.toString().substring(0, 1) === '3') {
+			log.debug('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" starting with 3, ending response.');
+			response.end();
+			return;
+		} else {
+			log.silly('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" not starting with 3, continue.');
+		}
+
 		splittedPath = request.urlParsed.pathname.split('.');
 
 		// We need to set the request type. Can be either json or html
@@ -280,15 +295,6 @@ exports = module.exports = function(customOptions) {
 			} else {
 				request.type = 'html';
 			}
-		}
-
-		// For redirect statuses, do not send a body at all
-		if (response.statusCode.toString().substring(0, 1) === '3') {
-			log.debug('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" starting with 3, ending response.');
-			response.end();
-			return;
-		} else {
-			log.silly('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" not starting with 3, continue.');
 		}
 
 		if (request.type === 'html') {
@@ -326,7 +332,7 @@ exports = module.exports = function(customOptions) {
 		returnObj.sendToClient = options.sendToClient;
 	}
 
-	server = http.createServer(returnObj.serveRequest);
+	server = http.createServer(serveRequest);
 
 	server.on('error', function(err) {
 		if (err.code === 'ENOTFOUND') {
