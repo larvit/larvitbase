@@ -203,7 +203,8 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.sendToClient = function(err, request, response, data) {
-		var splittedPath;
+		var splittedPath,
+		    htmlStr;
 
 		function sendErrorToClient() {
 			response.writeHead(500, {'Content-Type': 'text/plain'});
@@ -270,7 +271,15 @@ exports = module.exports = function(customOptions) {
 				request.controllerName = 'default';
 			}
 		} else {
-			request.type = 'html';
+			htmlStr = view.render(request.controllerName, data);
+
+			// If htmlStr is undefined, no template exists and that means no HTML, send JSON instead
+			if (htmlStr === undefined) {
+				log.verbose('larvitbase: sendToClient() - No template found for "' + request.controllerName + '", falling back to JSON output');
+				request.type = 'json';
+			} else {
+				request.type = 'html';
+			}
 		}
 
 		// For redirect statuses, do not send a body at all
@@ -280,7 +289,7 @@ exports = module.exports = function(customOptions) {
 		}
 
 		if (request.type === 'html') {
-			sendHtmlToClient(view.render(request.controllerName, data));
+			sendHtmlToClient(htmlStr);
 		} else {
 			sendJsonToClient();
 		}
