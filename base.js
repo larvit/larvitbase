@@ -182,7 +182,7 @@ exports = module.exports = function(customOptions) {
 	function serveRequest(request, response) {
 		request.cuid      = cuid();
 		request.startTime = process.hrtime();
-		log.debug('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
+		log.verbose('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
 
 		response.on('finish', function() {
 			var timer = utils.hrtimeToMs(request.startTime);
