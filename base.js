@@ -9,6 +9,7 @@ var path       = require('path'),
     merge      = require('utils-merge'),
     utils      = require('larvitutils'),
     send       = require('send'),
+    _          = require('lodash'),
     server,
     options,
     view,
@@ -58,6 +59,23 @@ exports = module.exports = function(customOptions) {
 		response.loadAfterware = function(i) {
 			if (i === undefined) {
 				i = 0;
+			}
+
+			// Check for session data from previous call to send to this one and then erase
+			if (request.session !== undefined && request.session.data !== undefined && request.session.data.singleCallData !== undefined) {
+				try {
+					log.debug('larvitbase: Request #' + request.cuid + ' - session singleCallData found, merging into controller data. singleCallData: ' + JSON.stringify(request.session.data.singleCallData));
+					_.merge(response.controllerData, request.session.data.singleCallData);
+					delete request.session.data.singleCallData;
+				} catch(err) {
+					log.warn('larvitbase: Request #' + request.cuid + ' - session singleCallData found, but failed to load or merge it. err: ' + err.message);
+				}
+			}
+
+			if (request.session !== undefined && request.session.data !== undefined && request.session.data.nextCallData !==  undefined) {
+				log.debug('larvitbase: Request #' + request.cuid + ' - session nextCallData found, setting to singleCallData');
+				request.session.data.singleCallData = request.session.data.nextCallData;
+				delete request.session.data.nextCallData;
 			}
 
 			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {

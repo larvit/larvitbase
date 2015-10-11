@@ -14,7 +14,8 @@
 		"utils-merge": "latest",
 		"larvitutils": "latest",
 		"larvitrouter": "latest",
-		"larvitviews": "latest"
+		"larvitviews": "latest",
+		"lodash": "latest"
 	},
 	"description": "node.js base framework",
 	"devDependencies": {

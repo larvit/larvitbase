@@ -128,3 +128,12 @@ The syntax is exactly the same as Middlewares:
     		require('larvitsession').afterware()
     	]
     });
+
+### Session data sent from previous call to controller JSON
+
+If request.session.data.nextCallData is set, it will be:
+
+1. Merged into controller data output on the next call, with low priority
+2. Erased from the session data, so it won't show up on the call after next
+
+The reason for the data structure is to harmonize with the larvitsession module, if it is loaded.
