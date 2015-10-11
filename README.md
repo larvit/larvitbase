@@ -53,51 +53,20 @@ It need to have the following structure:
     	callback(null, request, response, data);
     }
 
-### Views
-
-A view is used to match the data from the controller with one or more templates. Views are by default positioned in ./public/views/_controllerName_.js and a typical default file can look like this:
-
-    'use strict';
-
-    var larvitviews = require('larvitviews')();
-
-    exports.run = function(data, callback) {
-    	var partials;
-
-    	partials = [
-    		{
-    			'partName': 'aboveBody',
-    			'tmplPath': 'head',
-    			'data': data.head
-    		},
-    		{
-    			'tmplPath': 'default',
-    			'data': data
-    		}
-    	];
-
-    	data.tmplParts = {}; // This will contain the different template parts
-    	                     // that will be stitched together for a complete page
-
-    	larvitviews.renderPartials(partials, data, function(err, returnStr) {
-    		callback(err, returnStr);
-    	});
-    };
-
 ### Templates
 
-Larvitbase use [underscore templates](http://underscorejs.org/#template). They are fed with the data sent in the callback from the controller.
+Larvitbase use [larvitviews](https://github.com/larvit/larvitviews), which in turn use [lodash templates](https://lodash.com/docs#template). They are fed with the data sent in the callback from the controller.
 
-The templates resides in ./public/views/tmpl/_controllerName_.tmpl - for example ./public/viewstmpl/default.tmpl to match the above "/" route.
+The templates resides by default in ./public/views/tmpl/_controllerName_.tmpl - for example ./public/viewstmpl/default.tmpl to match the above "/" route. From the controller, set response.templateName to something else to use a custom template if you do not wish to use the controller name.
 
 An example template can look like:
 
     <!DOCTYPE html>
     <html lang="en">
-    	<%= tmplParts['aboveBody'] %>
+    	<%= _.render('head', obj) %>
     	<body>
     		<h1>Look at our beautiful data below</h1>
-    		<p><%= foo %></p>
+    		<p><%= obj.foo %> or, for equal result use <%= foo %></p>
     	</body>
     </html>
 
