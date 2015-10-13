@@ -202,6 +202,9 @@ exports = module.exports = function(customOptions) {
 		request.startTime = process.hrtime();
 		log.verbose('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
 
+		// Set X-Powered-By header
+		response.setHeader('X-Powered-By', 'larvitbase on node.js');
+
 		response.on('finish', function() {
 			var timer = utils.hrtimeToMs(request.startTime);
 
