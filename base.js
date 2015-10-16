@@ -202,30 +202,59 @@ exports = module.exports = function(customOptions) {
 		request.startTime = process.hrtime();
 		log.verbose('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
 
-		// Set X-Powered-By header
-		response.setHeader('X-Powered-By', 'larvitbase on node.js');
+		function runBeforeWare(i) {
+			if (options.beforeware === undefined || ( ! options.beforeware instanceof Array)) {
+				options.beforeware = [];
+			}
+
+			if (i === undefined) {
+				// Set X-Powered-By header
+				response.setHeader('X-Powered-By', 'larvitbase on node.js');
+
+				i = 0;
+			}
+
+			if (options.beforeware[i] === undefined) {
+				router.resolve(request, function(err) {
+					if (err) {
+						// Could not be resolved, this is logged in router.resolve()
+						// This includes that the 404 controller could not be resolved. Send hard coded 404 response.
+						response.writeHead(404, {'Content-Type': 'text/plain'});
+						response.write('404 Not Found\n');
+						response.end();
+
+						return;
+					}
+
+					response.sendToClient = returnObj.sendToClient;
+
+					// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
+					returnObj.parseRequest(request, response);
+				});
+
+				return;
+			}
+
+			options.beforeware[i](request, response, function(err) {
+				if (err) {
+					log.error('larvitbase: Request #' + request.cuid + ' - Beforeware nr ' + i + ' err: ' + err.message);
+					response.writeHead(500, {'Content-Type': 'text/plain'});
+					response.write('500 Internal Server Error\n');
+					response.end();
+					return;
+				}
+
+				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded beforeware nr ' + i);
+				runBeforeWare(i + 1);
+			});
+		}
+
+		runBeforeWare();
 
 		response.on('finish', function() {
 			var timer = utils.hrtimeToMs(request.startTime);
 
 			log.debug('larvitbase: Request #' + request.cuid + ' complete in ' + timer + 'ms');
-		});
-
-		router.resolve(request, function(err) {
-			if (err) {
-				// Could not be resolved, this is logged in router.resolve()
-				// This includes that the 404 controller could not be resolved. Send hard coded 404 response.
-				response.writeHead(404, {'Content-Type': 'text/plain'});
-				response.write('404 Not Found\n');
-				response.end();
-
-				return;
-			}
-
-			response.sendToClient = returnObj.sendToClient;
-
-			// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-			returnObj.parseRequest(request, response);
 		});
 	};
 
