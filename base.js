@@ -174,7 +174,8 @@ exports = module.exports = function(customOptions) {
 		var form;
 
 		if (returnObj.formidableParseable(request)) {
-			form = new formidable.IncomingForm();
+			form                = new formidable.IncomingForm();
+			form.keepExtensions = true;
 
 			form.parse(request, function(err, fields, files) {
 				if (err) {
