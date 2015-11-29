@@ -1,19 +1,19 @@
 'use strict';
 
-var path       = require('path'),
-    http       = require('http'),
+var formidable = require('formidable'),
     events     = require('events'),
-    formidable = require('formidable'),
-    log        = require('winston'),
-    cuid       = require('cuid'),
     merge      = require('utils-merge'),
     utils      = require('larvitutils'),
+    path       = require('path'),
+    http       = require('http'),
+    cuid       = require('cuid'),
     send       = require('send'),
+    log        = require('winston'),
     _          = require('lodash'),
-    server,
     options,
-    view,
-    router;
+    router,
+    server,
+    view;
 
 exports = module.exports = function(customOptions) {
 	var returnObj = new events.EventEmitter();
@@ -21,33 +21,33 @@ exports = module.exports = function(customOptions) {
 	/**
 	 * Checks if a request is parseable by formidable
 	 *
-	 * @param obj request - standard request object
+	 * @param obj req - standard request object
 	 * @return boolean
 	 */
-	returnObj.formidableParseable = function(request) {
+	returnObj.formidableParseable = function(req) {
 		// For reference this is taken from formidable/lib/incoming_form.js - IncomingForm.prototype._parseContentType definition
 
-		if (request.method !== 'POST') {
+		if (req.method !== 'POST') {
 			return false;
 		}
 
-		if ( ! request.headers['content-type']) {
+		if ( ! req.headers['content-type']) {
 			return false;
 		}
 
-		if (request.headers['content-type'].match(/octet-stream/i)) {
+		if (req.headers['content-type'].match(/octet-stream/i)) {
 			return true;
 		}
 
-		if (request.headers['content-type'].match(/urlencoded/i)) {
+		if (req.headers['content-type'].match(/urlencoded/i)) {
 			return true;
 		}
 
-		if (request.headers['content-type'].match(/multipart/i) && request.headers['content-type'].match(/boundary=(?:"([^"]+)"|([^;]+))/i)) {
+		if (req.headers['content-type'].match(/multipart/i) && req.headers['content-type'].match(/boundary=(?:"([^"]+)"|([^;]+))/i)) {
 			return true;
 		}
 
-		if (request.headers['content-type'].match(/json/i)) {
+		if (req.headers['content-type'].match(/json/i)) {
 			return true;
 		}
 
@@ -55,110 +55,110 @@ exports = module.exports = function(customOptions) {
 		return false;
 	};
 
-	returnObj.executeController = function(request, response) {
-		response.loadAfterware = function(i) {
+	returnObj.executeController = function(req, res) {
+		res.loadAfterware = function(i) {
 			if (i === undefined) {
 				i = 0;
 			}
 
 			// Check for session data from previous call to send to this one and then erase
-			if (request.session !== undefined && request.session.data !== undefined && request.session.data.singleCallData !== undefined) {
+			if (req.session !== undefined && req.session.data !== undefined && req.session.data.singleCallData !== undefined) {
 				try {
-					log.debug('larvitbase: Request #' + request.cuid + ' - session singleCallData found, merging into controller data. singleCallData: ' + JSON.stringify(request.session.data.singleCallData));
-					_.merge(response.controllerData, request.session.data.singleCallData);
-					delete request.session.data.singleCallData;
+					log.debug('larvitbase: Request #' + req.cuid + ' - session singleCallData found, merging into controller data. singleCallData: ' + JSON.stringify(req.session.data.singleCallData));
+					_.merge(res.controllerData, req.session.data.singleCallData);
+					delete req.session.data.singleCallData;
 				} catch(err) {
-					log.warn('larvitbase: Request #' + request.cuid + ' - session singleCallData found, but failed to load or merge it. err: ' + err.message);
+					log.warn('larvitbase: Request #' + req.cuid + ' - session singleCallData found, but failed to load or merge it. err: ' + err.message);
 				}
 			}
 
-			if (request.session !== undefined && request.session.data !== undefined && request.session.data.nextCallData !==  undefined) {
-				log.debug('larvitbase: Request #' + request.cuid + ' - session nextCallData found, setting to singleCallData');
-				request.session.data.singleCallData = request.session.data.nextCallData;
-				delete request.session.data.nextCallData;
+			if (req.session !== undefined && req.session.data !== undefined && req.session.data.nextCallData !==  undefined) {
+				log.debug('larvitbase: Request #' + req.cuid + ' - session nextCallData found, setting to singleCallData');
+				req.session.data.singleCallData = req.session.data.nextCallData;
+				delete req.session.data.nextCallData;
 			}
 
 			if (options.afterware === undefined || ( ! options.afterware instanceof Array) || options.afterware[i] === undefined) {
-				response.sendToClient(null, request, response, response.controllerData);
+				res.sendToClient(null, req, res, res.controllerData);
 				return;
 			}
 
-			options.afterware[i](request, response, response.controllerData, function() {
-				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded afterware nr ' + i);
+			options.afterware[i](req, res, res.controllerData, function() {
+				log.silly('larvitbase: Request #' + req.cuid + ' - Loaded afterware nr ' + i);
 
 				if (options.afterware[i + 1] !== undefined) {
-					response.loadAfterware(i + 1);
+					res.loadAfterware(i + 1);
 				} else {
-					response.sendToClient(null, request, response, response.controllerData);
+					res.sendToClient(null, req, res, res.controllerData);
 				}
 			});
 		};
 
-		response.runSendToClient = function(err, request, response, data) {
+		res.runSendToClient = function(err, req, res, data) {
 			// Set this to the outer clojure to be accessible for other functions
-			response.controllerData = data;
+			res.controllerData = data;
 
 			// If there is an error, do not run afterware at all,
 			// just call sendToClient to send this error information to the client
 			if (err) {
-				response.sendToClient(err, request, response, data);
+				res.sendToClient(err, req, res, data);
 				return;
 			}
 
-			response.loadAfterware();
+			res.loadAfterware();
 		};
 
-		response.runController = function() {
-			log.debug('larvitbase: Request #' + request.cuid + ' - Running controller: ' + request.controllerName + ' with path: ' + request.controllerFullPath);
+		res.runController = function() {
+			log.debug('larvitbase: Request #' + req.cuid + ' - Running controller: ' + req.controllerName + ' with path: ' + req.controllerFullPath);
 
-			require(request.controllerFullPath).run(request, response, response.runSendToClient);
+			require(req.controllerFullPath).run(req, res, res.runSendToClient);
 		};
 
-		response.loadMiddleware = function(i) {
+		res.loadMiddleware = function(i) {
 			if (i === undefined) {
 				i = 0;
 			}
 
 			if (( ! options.middleware instanceof Array) || options.middleware[i] === undefined) {
-				response.runController();
+				res.runController();
 				return;
 			}
 
-			options.middleware[i](request, response, function() {
-				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded middleware nr ' + i);
+			options.middleware[i](req, res, function() {
+				log.silly('larvitbase: Request #' + req.cuid + ' - Loaded middleware nr ' + i);
 
 				if (options.middleware[i + 1] !== undefined) {
-					response.loadMiddleware(i + 1);
+					res.loadMiddleware(i + 1);
 				} else {
-					response.runController();
+					res.runController();
 				}
 			});
 		};
 
-		response.next = function() {
-			if (request.staticFilename !== undefined) {
-				log.debug('larvitbase: Request #' + request.cuid + ' - Serving static file: ' + request.staticFilename);
+		res.next = function() {
+			if (req.staticFilename !== undefined) {
+				log.debug('larvitbase: Request #' + req.cuid + ' - Serving static file: ' + req.staticFilename);
 
-				response.staticSender = send(request, request.staticFilename, {
+				res.staticSender = send(req, req.staticFilename, {
 					'index': false,
 					'root': '/'
 				});
 
 				// Send (pipe) the file over to the client via the response object
-				response.staticSender.pipe(response);
+				res.staticSender.pipe(res);
 
-				response.staticSender.on('error', function(err) {
-					log.error('larvitbase: Request #' + request.cuid + ' Error from send(): ' + err.message);
+				res.staticSender.on('error', function(err) {
+					log.error('larvitbase: Request #' + req.cuid + ' Error from send(): ' + err.message);
 				});
 			} else {
-				response.loadMiddleware();
+				res.loadMiddleware();
 			}
 		};
 
 		// Expose this session to the outer world
-		if ( ! returnObj.emit('httpSession', request, response)) {
-			log.debug('larvitbase: executeController() - No listener found for httpSession event, running response.next() automatically');
-			response.next();
+		if ( ! returnObj.emit('httpSession', req, res)) {
+			log.debug('larvitbase: executeController() - No listener found for httpSession event, running res.next() automatically');
+			res.next();
 		}
 	};
 
@@ -166,42 +166,42 @@ exports = module.exports = function(customOptions) {
 	 * Parse request
 	 * Fetch POST data etc
 	 *
-	 * @param obj request - standard request object
-	 * @param obj response - standard response object
-	 * @param func sendToClient(err, request, response, data) where data is the data that should be sent
+	 * @param obj req - standard request object
+	 * @param obj res - standard response object
+	 * @param func sendToClient(err, req, res, data) where data is the data that should be sent
 	 */
-	returnObj.parseRequest = function(request, response) {
+	returnObj.parseRequest = function(req, res) {
 		var form;
 
-		if (returnObj.formidableParseable(request)) {
+		if (returnObj.formidableParseable(req)) {
 			form                = new formidable.IncomingForm();
 			form.keepExtensions = true;
 
-			form.parse(request, function(err, fields, files) {
+			form.parse(req, function(err, fields, files) {
 				if (err) {
-					log.warn('larvitbase: Request #' + request.cuid + ' - parseRequest() - ' + err.message, err);
+					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message, err);
 				} else {
-					request.formFields = fields;
-					request.formFiles  = files;
+					req.formFields = fields;
+					req.formFiles  = files;
 				}
-				returnObj.executeController(request, response);
+				returnObj.executeController(req, res);
 			});
 		} else {
 			// No parsing needed, just execute the controller
-			returnObj.executeController(request, response);
+			returnObj.executeController(req, res);
 		}
 	};
 
 	/**
 	 * Serve a request created by the http.createServer
 	 *
-	 * @param obj request - standard request object
-	 * @param obj respose - standard response object
+	 * @param obj req - standard request object
+	 * @param obj res - standard response object
 	 */
-	function serveRequest(request, response) {
-		request.cuid      = cuid();
-		request.startTime = process.hrtime();
-		log.debug('larvitbase: Starting request #' + request.cuid + ' to: "' + request.url);
+	function serveRequest(req, res) {
+		req.cuid      = cuid();
+		req.startTime = process.hrtime();
+		log.debug('larvitbase: Starting request #' + req.cuid + ' to: "' + req.url);
 
 		function runBeforeWare(i) {
 			if (options.beforeware === undefined || ( ! options.beforeware instanceof Array)) {
@@ -210,102 +210,107 @@ exports = module.exports = function(customOptions) {
 
 			if (i === undefined) {
 				// Set X-Powered-By header
-				response.setHeader('X-Powered-By', 'larvitbase on node.js');
+				res.setHeader('X-Powered-By', 'larvitbase on node.js');
 
 				i = 0;
 			}
 
 			if (options.beforeware[i] === undefined) {
-				router.resolve(request, function(err) {
+				router.resolve(req, function(err) {
 					if (err) {
 						// Could not be resolved, this is logged in router.resolve()
 						// This includes that the 404 controller could not be resolved. Send hard coded 404 response.
-						response.writeHead(404, {'Content-Type': 'text/plain'});
-						response.write('404 Not Found\n');
-						response.end();
+						res.writeHead(404, {'Content-Type': 'text/plain'});
+						res.write('404 Not Found\n');
+						res.end();
 
 						return;
 					}
 
-					response.sendToClient = returnObj.sendToClient;
+					res.sendToClient = returnObj.sendToClient;
 
 					// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-					returnObj.parseRequest(request, response);
+					returnObj.parseRequest(req, res);
 				});
 
 				return;
 			}
 
-			options.beforeware[i](request, response, function(err) {
+			options.beforeware[i](req, res, function(err) {
 				if (err) {
-					log.error('larvitbase: Request #' + request.cuid + ' - Beforeware nr ' + i + ' err: ' + err.message);
-					response.writeHead(500, {'Content-Type': 'text/plain'});
-					response.write('500 Internal Server Error\n');
-					response.end();
+					log.error('larvitbase: Request #' + req.cuid + ' - Beforeware nr ' + i + ' err: ' + err.message);
+					res.writeHead(500, {'Content-Type': 'text/plain'});
+					res.write('500 Internal Server Error\n');
+					res.end();
 					return;
 				}
 
-				log.silly('larvitbase: Request #' + request.cuid + ' - Loaded beforeware nr ' + i);
+				log.silly('larvitbase: Request #' + req.cuid + ' - Loaded beforeware nr ' + i);
 				runBeforeWare(i + 1);
 			});
 		}
 
-		runBeforeWare();
+		// Make sure router paths are loaded before going further
+		if (router.paths.length && ! router.pathsLoading) {
+			runBeforeWare();
+		} else {
+			router.on('pathsLoaded', runBeforeWare);
+		}
 
-		response.on('finish', function() {
-			var timer = utils.hrtimeToMs(request.startTime);
+		res.on('finish', function() {
+			var timer = utils.hrtimeToMs(req.startTime);
 
-			log.debug('larvitbase: Request #' + request.cuid + ' complete in ' + timer + 'ms');
+			log.debug('larvitbase: Request #' + req.cuid + ' complete in ' + timer + 'ms');
 		});
 	};
 
-	returnObj.sendToClient = function(err, request, response, data) {
+	returnObj.sendToClient = function(err, req, res, data) {
 		var splittedPath,
 		    htmlStr,
 		    templateName;
 
 		function sendErrorToClient() {
-			response.writeHead(500, {'Content-Type': 'text/plain'});
-			response.end('Internal server error');
+			res.writeHead(500, {'Content-Type': 'text/plain'});
+			res.end('Internal server error');
 		}
 
 		function sendJsonToClient() {
 			var jsonStr;
 
 			// The controller might have set a custom status code, do not override it
-			if ( ! response.statusCode) {
-				response.statusCode = 200;
+			if ( ! res.statusCode) {
+				res.statusCode = 200;
 			}
 
-			response.setHeader('Content-Type', 'application/json; charset=utf-8');
+			res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
 			try {
 				jsonStr = JSON.stringify(data);
 			} catch(err) {
-				response.statusCode = 500;
+				res.statusCode = 500;
 				log.error('larvitbase: sendToClient() - sendJsonToClient() - Could not transform data to JSON: "' + err.message + '" JSON.inspect(): "' + require('util').inspect(data, {'depth': null}));
 				jsonStr = '{"error": "' + err.message + '"}';
 			}
 
-			response.end(jsonStr);
+			res.end(jsonStr);
 		}
 
 		function sendHtmlToClient(htmlStr) {
 			// The controller might have set a custom status code, do not override it
-			if ( ! response.statusCode) {
-				response.statusCode = 200;
+			if ( ! res.statusCode) {
+				res.statusCode = 200;
 			}
 
-			response.setHeader('Content-Type', 'text/html; charset=utf-8');
-			response.end(htmlStr);
+			res.setHeader('Content-Type', 'text/html; charset=utf-8');
+			res.end(htmlStr);
 		}
 
 		if (data === undefined) {
 			data = {};
 		}
 
-		if ( ! request.urlParsed) {
-			err = new Error('larvitbase: request.urlParsed is not set');
+		if ( ! req.urlParsed) {
+			err = new Error('larvitbase: req.urlParsed is not set');
 			log.error(err.message);
 
 			sendErrorToClient();
@@ -319,28 +324,28 @@ exports = module.exports = function(customOptions) {
 		}
 
 		// For redirect statuses, do not send a body at all
-		if (response.statusCode.toString().substring(0, 1) === '3') {
-			log.debug('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" starting with 3, ending response.');
-			response.end();
+		if (res.statusCode.toString().substring(0, 1) === '3') {
+			log.debug('larvitbase: sendToClient() - statusCode "' + res.statusCode + '" starting with 3, ending response.');
+			res.end();
 			return;
 		} else {
-			log.silly('larvitbase: sendToClient() - statusCode "' + response.statusCode + '" not starting with 3, continue.');
+			log.silly('larvitbase: sendToClient() - statusCode "' + res.statusCode + '" not starting with 3, continue.');
 		}
 
-		splittedPath = request.urlParsed.pathname.split('.');
+		splittedPath = req.urlParsed.pathname.split('.');
 
 		// We need to set the request type. Can be either json or html
 		if (splittedPath[splittedPath.length - 1] === 'json') {
-			request.type           = 'json';
-			request.controllerName = request.controllerName.substring(0, request.controllerName.length - 5);
-			if (request.controllerName === '') {
-				log.info('larvitbase: sendToClient() - request.controllerName is an empty string, falling back to "default"');
-				request.controllerName = 'default';
+			req.type           = 'json';
+			req.controllerName = req.controllerName.substring(0, req.controllerName.length - 5);
+			if (req.controllerName === '') {
+				log.info('larvitbase: sendToClient() - req.controllerName is an empty string, falling back to "default"');
+				req.controllerName = 'default';
 			}
 		} else {
-			templateName = response.templateName;
+			templateName = res.templateName;
 			if (templateName === undefined) {
-				templateName = request.controllerName;
+				templateName = req.controllerName;
 			}
 
 			htmlStr = view.render(templateName, data);
@@ -348,13 +353,13 @@ exports = module.exports = function(customOptions) {
 			// If htmlStr is undefined, no template exists and that means no HTML, send JSON instead
 			if (htmlStr === undefined) {
 				log.verbose('larvitbase: sendToClient() - No template found for "' + templateName + '", falling back to JSON output');
-				request.type = 'json';
+				req.type = 'json';
 			} else {
-				request.type = 'html';
+				req.type = 'html';
 			}
 		}
 
-		if (request.type === 'html') {
+		if (req.type === 'html') {
 			sendHtmlToClient(htmlStr);
 		} else {
 			sendJsonToClient();
