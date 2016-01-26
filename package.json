@@ -7,20 +7,20 @@
 	"private": false,
 	"contributors": [],
 	"dependencies": {
-		"cuid": "~1.3",
-		"formidable": "~1.0",
-		"larvitrouter": "~0.1",
-		"larvitutils": "~0.4",
-		"larvitviews": "~0.1",
-		"lodash": "~3.10",
-		"send": "~0.13",
-		"utils-merge": "~1.0",
-		"winston": "~2.1"
+		"cuid": "^1",
+		"formidable": "^1",
+		"larvitrouter": "^0.1",
+		"larvitutils": "^0.4",
+		"larvitviews": "^0.2",
+		"lodash": "^4",
+		"send": "^0.13",
+		"utils-merge": "^1",
+		"winston": "^2"
 	},
 	"description": "node.js base framework",
 	"devDependencies": {
-		"mocha": "latest",
-		"pre-git": "latest"
+		"mocha": "^2",
+		"pre-git": "^3"
 	},
 	"pre-commit": [
 		"npm test",
@@ -36,7 +36,7 @@
 		"url": "https://github.com/larvit/larvitbase",
 		"type": "git"
 	},
-	"version": "0.1.11",
+	"version": "0.1.12",
 	"readmeFilename": "README.md",
 	"scripts": {
 		"test": "mocha"
