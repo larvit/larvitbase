@@ -9,9 +9,9 @@
   "dependencies": {
     "cuid": "^1.3.8",
     "formidable": "^1.0.17",
-    "larvitrouter": "^0.1.12",
-    "larvitutils": "^0.4.2",
-    "larvitviews": "^0.2.0",
+    "larvitrouter": "^0.1.14",
+    "larvitutils": "^0.4.3",
+    "larvitviews": "^0.2.1",
     "lodash": "^4.0.1",
     "send": "^0.13.1",
     "utils-merge": "^1.0.0",
@@ -36,7 +36,7 @@
     "url": "https://github.com/larvit/larvitbase",
     "type": "git"
   },
-  "version": "0.1.13",
+  "version": "0.1.14",
   "readmeFilename": "README.md",
   "scripts": {
     "test": "mocha",
