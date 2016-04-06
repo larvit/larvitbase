@@ -26,10 +26,6 @@ const lbase = require('larvitbase'),
       routeReq = lbase.routeReq(),
 
       // Simply run the controller
-      // This function expects request.controllerFullPath to be set to a runnable file, like so:
-      // require(request.controllerFullPath)(request, response, callback)
-      // Where callback is given two parameters: err and data
-      // "data" being a free form object that will be set by execController to request.controllerData
       execController = lbase.execController(),
 
       // Sends the output from the controller to the client
