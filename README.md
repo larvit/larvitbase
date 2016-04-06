@@ -1,48 +1,27 @@
-[![Build Status](https://travis-ci.org/larvit/larvitbase.svg?branch=master)](https://travis-ci.org/larvit/larvitbase) [![Dependencies](https://david-dm.org/larvit/larvitbase.svg)](https://david-dm.org/larvit/larvitbase.svg)
-
 # larvitbase
 
 Node.js micro framework
 
 ## Installation
 
-```bash
-npm i larvitbase
-```
+    npm i larvitbase
 
 ## Basic usage
 
 In your application root directory, create a file named server.js with the following content:
 
-```javascript
-'use strict';
+    'use strict';
 
-const lbase = require('larvitbase'),
-
-      // Will auto-route to controllers in the controller folder and static files in the public folder
-      // To add custom routes, do something like this:
-      // lbase.routeReq({'routes': [{'regex': '^/foo$', 'controllerName': 'bar'}]})
-      // This will make a request to /foo resolve to execute the controller "bar"
-      routeReq = lbase.routeReq(),
-
-      // Simply run the controller
-      execController = lbase.execController(),
-
-      // Sends the output from the controller to the client
-      // This includes transforming the controller output to HTML or XML or whatever
-      sendToClient = lbase.sendToClient(),
-
-      // Starts up a server on port 8001, for custom port do: new lbase.App({'port': 1234})
-      app = new lbase.App(),
-
-// These functions will be executed in order, each taking the parameters:
-// (request, response, next)
-app.onRequestDo = [
-	routeReq,
-	execController,
-	sendToClient
-];
-```
+    // Given config parameters is the default, all can be omitted
+    require('larvitbase')({
+    	'host':        '127.0.0.1',
+    	'port':        8001,
+    	'pubFilePath': './public',
+    	'customRoutes': [{
+    		'regex': '^/$', // Regexp to be matched for the given URL
+    		'controllerName': 'default' // Name of the file in ./controllers/<filename>.js
+    	}]
+    });
 
 ### Controllers
 
