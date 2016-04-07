@@ -39,7 +39,7 @@
     "url": "https://github.com/larvit/larvitbase",
     "type": "git"
   },
-  "version": "1.0.0-rc1",
+  "version": "1.0.0",
   "readmeFilename": "README.md",
   "scripts": {
     "test": "mocha"
