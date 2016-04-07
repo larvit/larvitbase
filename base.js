@@ -1,6 +1,7 @@
 'use strict';
 
 var formidable = require('formidable'),
+    Lviews     = require('larvitviews'),
     events     = require('events'),
     merge      = require('utils-merge'),
     utils      = require('larvitutils'),
@@ -9,10 +10,10 @@ var formidable = require('formidable'),
     cuid       = require('cuid'),
     send       = require('send'),
     log        = require('winston'),
+    url        = require('url'),
     _          = require('lodash'),
     options,
     router,
-    server,
     view;
 
 exports = module.exports = function(customOptions) {
@@ -109,9 +110,9 @@ exports = module.exports = function(customOptions) {
 		};
 
 		res.runController = function() {
-			log.debug('larvitbase: Request #' + req.cuid + ' - Running controller: ' + req.controllerName + ' with path: ' + req.controllerFullPath);
+			log.debug('larvitbase: Request #' + req.cuid + ' - Running controller: ' + req.routeResult.controllerName + ' with path: ' + req.routeResult.controllerFullPath);
 
-			require(req.controllerFullPath).run(req, res, res.runSendToClient);
+			require(req.routeResult.controllerFullPath).run(req, res, res.runSendToClient);
 		};
 
 		res.loadMiddleware = function(i) {
@@ -136,10 +137,10 @@ exports = module.exports = function(customOptions) {
 		};
 
 		res.next = function() {
-			if (req.staticFilename !== undefined) {
-				log.debug('larvitbase: Request #' + req.cuid + ' - Serving static file: ' + req.staticFilename);
+			if (req.routeResult.staticFullPath !== undefined) {
+				log.debug('larvitbase: Request #' + req.cuid + ' - Serving static file: ' + req.routeResult.staticFullPath);
 
-				res.staticSender = send(req, req.staticFilename, {
+				res.staticSender = send(req, req.routeResult.staticFullPath, {
 					'index': false,
 					'root': '/'
 				});
@@ -172,6 +173,8 @@ exports = module.exports = function(customOptions) {
 	 */
 	returnObj.parseRequest = function(req, res) {
 		var form;
+
+		req.urlParsed = url.parse(req.url);
 
 		if (returnObj.formidableParseable(req)) {
 			form                = new formidable.IncomingForm();
@@ -216,22 +219,12 @@ exports = module.exports = function(customOptions) {
 			}
 
 			if (options.beforeware[i] === undefined) {
-				router.resolve(req, function(err) {
-					if (err) {
-						// Could not be resolved, this is logged in router.resolve()
-						// This includes that the 404 controller could not be resolved. Send hard coded 404 response.
-						res.writeHead(404, {'Content-Type': 'text/plain'});
-						res.write('404 Not Found\n');
-						res.end();
+				req.routeResult = router.resolve(req.url);
 
-						return;
-					}
+				res.sendToClient = returnObj.sendToClient;
 
-					res.sendToClient = returnObj.sendToClient;
-
-					// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
-					returnObj.parseRequest(req, res);
-				});
+				// We need to parse the request a bit for POST values etc before we hand it over to the controller(s)
+				returnObj.parseRequest(req, res);
 
 				return;
 			}
@@ -250,12 +243,7 @@ exports = module.exports = function(customOptions) {
 			});
 		}
 
-		// Make sure router paths are loaded before going further
-		if (router.paths.length && ! router.pathsLoading) {
-			runBeforeWare();
-		} else {
-			router.on('pathsLoaded', runBeforeWare);
-		}
+		runBeforeWare();
 
 		res.on('finish', function() {
 			var timer = utils.hrtimeToMs(req.startTime);
@@ -345,7 +333,7 @@ exports = module.exports = function(customOptions) {
 		} else {
 			templateName = res.templateName;
 			if (templateName === undefined) {
-				templateName = req.controllerName;
+				templateName = req.routeResult.controllerName;
 			}
 
 			htmlStr = view.render(templateName, data);
@@ -388,15 +376,15 @@ exports = module.exports = function(customOptions) {
 		'pubFilePath':     options.pubFilePath
 	});
 
-	view = require('larvitviews')(options);
+	view = new Lviews(options);
 
 	if (options.sendToClient !== undefined) {
 		returnObj.sendToClient = options.sendToClient;
 	}
 
-	server = http.createServer(serveRequest);
+	returnObj.server = http.createServer(serveRequest);
 
-	server.on('error', function(err) {
+	returnObj.server.on('error', function(err) {
 		if (err.code === 'ENOTFOUND') {
 			log.error('larvitbase: Can\'t bind to ' + options.host + ':' + options.port);
 			log.verbose('larvitbase: You most likely want to use "localhost"');
@@ -405,7 +393,7 @@ exports = module.exports = function(customOptions) {
 		throw err;
 	});
 
-	server.listen(options.port, options.host);
+	returnObj.server.listen(options.port, options.host);
 
 	return returnObj;
 };
