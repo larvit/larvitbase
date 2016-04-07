@@ -24,7 +24,13 @@ before(function(done) {
 		port = tmpPort;
 
 		// Start the server up
-		require(process.cwd() + '/base.js')({'port': port});
+		require(process.cwd() + '/base.js')({
+			'port': port,
+			'customRoutes': [{
+				'regex':          '^/en_slemmig_torsk_i_en_brödrost$',
+				'controllerName': 'default'
+			}]
+		});
 
 		done();
 	});
@@ -68,6 +74,35 @@ describe('Basics', function() {
 			assert.deepEqual(res.headers['content-type'], 'image/x-icon');
 			res.on('data', function(chunk) {
 				assert.notDeepEqual(chunk, undefined);
+			});
+			res.on('end', function() {
+				done();
+			});
+		});
+
+		req.end();
+	});
+
+	it('Test custom route', function(done) {
+		const req = http.request({'port': port, 'path': '/en_slemmig_torsk_i_en_brödrost'}, function(res) {
+			assert.deepEqual(res.statusCode, 200);
+			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
+			res.on('data', function(chunk) {
+				assert.notDeepEqual(chunk, undefined);
+			});
+			res.on('end', function() {
+				done();
+			});
+		});
+
+		req.end();
+	});
+
+	it('Test 404 page for non defined route', function(done) {
+		const req = http.request({'port': port, 'path': '/does_not_exist'}, function(res) {
+			assert.deepEqual(res.statusCode, 404);
+			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
+			res.on('data', function() {
 			});
 			res.on('end', function() {
 				done();
