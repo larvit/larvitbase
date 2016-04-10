@@ -219,7 +219,7 @@ exports = module.exports = function(customOptions) {
 			}
 
 			if (options.beforeware[i] === undefined) {
-				req.routeResult = router.resolve(req.url);
+				req.routeResult = router.resolve(req.url.split('?')[0]);
 
 				res.sendToClient = returnObj.sendToClient;
 
