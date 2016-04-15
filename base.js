@@ -172,9 +172,23 @@ exports = module.exports = function(customOptions) {
 	 * @param func sendToClient(err, req, res, data) where data is the data that should be sent
 	 */
 	returnObj.parseRequest = function(req, res) {
-		var form;
+		let protocol,
+		    form,
+		    host;
 
-		req.urlParsed = url.parse(req.url);
+		if (req.connection && req.connection.encrypted) {
+			protocol = 'https';
+		} else {
+			protocol = 'http';
+		}
+
+		if (req.headers && req.headers.host) {
+			host = req.headers.host;
+		} else {
+			host = 'localhost';
+		}
+
+		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
 			form                = new formidable.IncomingForm();
