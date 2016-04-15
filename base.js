@@ -1,23 +1,24 @@
 'use strict';
 
-var formidable = require('formidable'),
-    Lviews     = require('larvitviews'),
-    events     = require('events'),
-    merge      = require('utils-merge'),
-    utils      = require('larvitutils'),
-    path       = require('path'),
-    http       = require('http'),
-    cuid       = require('cuid'),
-    send       = require('send'),
-    log        = require('winston'),
-    url        = require('url'),
-    _          = require('lodash'),
-    options,
+const formidable = require('formidable'),
+      Lviews     = require('larvitviews'),
+      events     = require('events'),
+      merge      = require('utils-merge'),
+      utils      = require('larvitutils'),
+      path       = require('path'),
+      http       = require('http'),
+      cuid       = require('cuid'),
+      send       = require('send'),
+      log        = require('winston'),
+      url        = require('url'),
+      _          = require('lodash');
+
+let options,
     router,
     view;
 
 exports = module.exports = function(customOptions) {
-	var returnObj = new events.EventEmitter();
+	const returnObj = new events.EventEmitter();
 
 	/**
 	 * Checks if a request is parseable by formidable
@@ -260,16 +261,16 @@ exports = module.exports = function(customOptions) {
 		runBeforeWare();
 
 		res.on('finish', function() {
-			var timer = utils.hrtimeToMs(req.startTime);
+			const timer = utils.hrtimeToMs(req.startTime);
 
 			log.debug('larvitbase: Request #' + req.cuid + ' complete in ' + timer + 'ms');
 		});
 	};
 
 	returnObj.sendToClient = function(err, req, res, data) {
-		var splittedPath,
-		    htmlStr,
-		    templateName;
+		let splittedPath,
+		    templateName,
+		    htmlStr;
 
 		function sendErrorToClient() {
 			res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -277,7 +278,7 @@ exports = module.exports = function(customOptions) {
 		}
 
 		function sendJsonToClient() {
-			var jsonStr;
+			let jsonStr;
 
 			// The controller might have set a custom status code, do not override it
 			if ( ! res.statusCode) {
@@ -312,7 +313,7 @@ exports = module.exports = function(customOptions) {
 		}
 
 		if ( ! req.urlParsed) {
-			err = new Error('larvitbase: req.urlParsed is not set');
+			let err = new Error('larvitbase: req.urlParsed is not set');
 			log.error(err.message);
 
 			sendErrorToClient();
@@ -338,11 +339,11 @@ exports = module.exports = function(customOptions) {
 
 		// We need to set the request type. Can be either json or html
 		if (splittedPath[splittedPath.length - 1] === 'json') {
-			req.type           = 'json';
-			req.controllerName = req.controllerName.substring(0, req.controllerName.length - 5);
-			if (req.controllerName === '') {
+			req.type                       = 'json';
+			req.routeResult.controllerName = req.routeResult.controllerName.substring(0, req.routeResult.controllerName.length - 5);
+			if (req.routeResult.controllerName === '') {
 				log.info('larvitbase: sendToClient() - req.controllerName is an empty string, falling back to "default"');
-				req.controllerName = 'default';
+				req.routeResult.controllerName = 'default';
 			}
 		} else {
 			templateName = res.templateName;

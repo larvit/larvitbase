@@ -111,4 +111,20 @@ describe('Basics', function() {
 
 		req.end();
 	});
+
+	it('Test JSON output from default controller', function(done) {
+		const req = http.request({'port': port, 'path': '/default.json'}, function(res) {
+			assert.deepEqual(res.statusCode, 200);
+			assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
+			res.setEncoding('utf8');
+			res.on('data', function(chunk) {
+				assert.deepEqual(chunk, '{"_global":{"warthog":false},"head":{"title":"foobar"},"foo":"bar"}');
+			});
+			res.on('end', function() {
+				done();
+			});
+		});
+
+		req.end();
+	});
 });
