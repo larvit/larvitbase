@@ -4,24 +4,28 @@ Node.js micro framework
 
 ## Installation
 
-    npm i larvitbase
+```bash
+npm i larvitbase
+```
 
 ## Basic usage
 
 In your application root directory, create a file named server.js with the following content:
 
-    'use strict';
+```javascript
+'use strict';
 
-    // Given config parameters is the default, all can be omitted
-    require('larvitbase')({
-    	'host':        '127.0.0.1',
-    	'port':        8001,
-    	'pubFilePath': './public',
-    	'customRoutes': [{
-    		'regex': '^/$', // Regexp to be matched for the given URL
-    		'controllerName': 'default' // Name of the file in ./controllers/<filename>.js
-    	}]
-    });
+// Given config parameters is the default, all can be omitted
+require('larvitbase')({
+	'host':        '127.0.0.1',
+	'port':        8001,
+	'pubFilePath': './public',
+	'customRoutes': [{
+		'regex': '^/$', // Regexp to be matched for the given URL
+		'controllerName': 'default' // Name of the file in ./controllers/<filename>.js
+	}]
+});
+```
 
 ### Controllers
 
@@ -31,27 +35,29 @@ It must reside in ./controllers/_controllerName_.js - for example ./controllers/
 
 It need to have the following structure:
 
-    'use strict';
+```javascript
+'use strict';
 
-    exports.run = function(request, response, callback) {
+exports.run = function(request, response, callback) {
 
-    	// This is the data we send back to the callback
-    	// It can be calls to other subcontrollers, database calls etc
-    	var data = {
+	// This is the data we send back to the callback
+	// It can be calls to other subcontrollers, database calls etc
+	const data = {
 
-            // The _global will be appended on each template partials data
-            '_global': {
-                'warthog': false
-            },
+        // The _global will be appended on each template partials data
+        '_global': {
+            'warthog': false
+        },
 
-    		'head': {
-    			'title': 'foobar'
-    		},
-    		'foo': 'bar'
-    	};
+		'head': {
+			'title': 'foobar'
+		},
+		'foo': 'bar'
+	};
 
-    	callback(null, request, response, data);
-    }
+	callback(null, request, response, data);
+}
+```
 
 ### Templates
 
@@ -61,25 +67,31 @@ The templates resides by default in ./public/views/tmpl/_controllerName_.tmpl - 
 
 An example template can look like:
 
-    <!DOCTYPE html>
-    <html lang="en">
-    	<%= _.render('head', obj) %>
-    	<body>
-    		<h1>Look at our beautiful data below</h1>
-    		<p><%= obj.foo %> or, for equal result use <%= foo %></p>
-    	</body>
-    </html>
+```html
+<!DOCTYPE html>
+<html lang="en">
+	<%= _.render('head', obj) %>
+	<body>
+		<h1>Look at our beautiful data below</h1>
+		<p><%= obj.foo %> or, for equal result use <%= foo %></p>
+	</body>
+</html>
+```
 
 The example head section, ./public/views/tmpl/head.tmpl, can look like this:
 
-    <head>
-    	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    	<title><%= title %></title>
-    </head>
+```html
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<title><%= title %></title>
+</head>
+```
 
 ### Check that it works
 
-    $ node ./server.js
+```bash
+node ./server.js
+```
 
 ## Advanced usage
 
@@ -89,27 +101,31 @@ The default behaviour for sending the controller data as JSON directly to the cl
 
 This example prints the controller data as plain text to the browser:
 
-    'use strict';
+```javascript
+'use strict';
 
-    require('larvitbase')({
-    	'sendToClient': function(err, request, response, data) {
-    		response.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    		response.writeHead(200);
-    		response.end(data.toString());
-    	}
-    });
+require('larvitbase')({
+	'sendToClient': function(err, request, response, data) {
+		response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+		response.writeHead(200);
+		response.end(data.toString());
+	}
+});
+```
 
 ### Middleware
 
 Exact same syntax as express, use for example the express cookie middleware like this:
 
-    'use strict';
+```javascript
+'use strict';
 
-    require('larvitbase')({
-    	'middleware': [
-    		require('cookies').express()
-    	]
-    });
+require('larvitbase')({
+	'middleware': [
+		require('cookies').express()
+	]
+});
+```
 
 ### Afterware
 
@@ -117,17 +133,19 @@ Afterware is ran just before the response is sent to the client. After the contr
 
 The syntax is exactly the same as Middlewares:
 
-    'use strict';
+```javascript
+'use strict';
 
-    require('larvitbase')({
-    	'middleware': [
-    		require('cookies').express(),
-    		require('larvitsession').middleware()
-    	],
-    	'afterware': [
-    		require('larvitsession').afterware()
-    	]
-    });
+require('larvitbase')({
+	'middleware': [
+		require('cookies').express(),
+		require('larvitsession').middleware()
+	],
+	'afterware': [
+		require('larvitsession').afterware()
+	]
+});
+```
 
 ### Session data sent from previous call to controller JSON
 

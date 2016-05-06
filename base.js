@@ -11,6 +11,7 @@ const formidable = require('formidable'),
       send       = require('send'),
       log        = require('winston'),
       url        = require('url'),
+      qs         = require('qs'),
       _          = require('lodash');
 
 let options,
@@ -199,7 +200,16 @@ exports = module.exports = function(customOptions) {
 				if (err) {
 					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message, err);
 				} else {
-					req.formFields = fields;
+
+					// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
+					let arr = [];
+					for (let p in fields) {
+						if (fields.hasOwnProperty(p)) {
+							arr.push(encodeURIComponent(p) + '=' + encodeURIComponent(fields[p]));
+						}
+					}
+
+					req.formFields = qs.parse(arr.join('&'));
 					req.formFiles  = files;
 				}
 				returnObj.executeController(req, res);
