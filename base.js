@@ -193,23 +193,41 @@ exports = module.exports = function(customOptions) {
 		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
+			let formRawBody     = '';
 			form                = new formidable.IncomingForm();
 			form.keepExtensions = true;
 
-			form.parse(req, function(err, fields, files) {
-				if (err) {
-					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message, err);
-				} else {
+			// Use formidable to handle files but qs to handle formdata
+			form.onPart = function(part) {
+				// let formidable handle all file parts
+			  if (part.filename) {
+			    form.handlePart(part);
 
-					// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
-					let arr = [];
-					for (let p in fields) {
-						if (fields.hasOwnProperty(p)) {
-							arr.push(encodeURIComponent(p) + '=' + encodeURIComponent(fields[p]));
-						}
+				// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
+				} else {
+					if (formRawBody !== '') {
+						formRawBody += '&';
 					}
 
-					req.formFields = qs.parse(arr.join('&'));
+					formRawBody += encodeURIComponent(part.name) + '=';
+
+					part.on('data', function(data) {
+						formRawBody += encodeURIComponent(data);
+					});
+					//part.on('end', function() {
+					//
+					//});
+					part.on('error', function(err) {
+						log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - form.onPart() err: ' + err.message);
+					});
+				}
+			};
+
+			form.parse(req, function(err, fields, files) {
+				if (err) {
+					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message);
+				} else {
+					req.formFields = qs.parse(formRawBody);
 					req.formFiles  = files;
 				}
 				returnObj.executeController(req, res);
