@@ -200,8 +200,8 @@ exports = module.exports = function(customOptions) {
 			// Use formidable to handle files but qs to handle formdata
 			form.onPart = function(part) {
 				// let formidable handle all file parts
-			  if (part.filename) {
-			    form.handlePart(part);
+				if (part.filename) {
+					form.handlePart(part);
 
 				// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
 				} else {
