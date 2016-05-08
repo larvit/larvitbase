@@ -1,4 +1,6 @@
 {
+  "name": "larvitbase",
+  "version": "1.1.2",
   "author": {
     "name": "Mikael 'Lilleman' Göransson",
     "email": "lilleman@larvit.se",
@@ -35,12 +37,10 @@
     "micro"
   ],
   "main": "base.js",
-  "name": "larvitbase",
   "repository": {
     "url": "https://github.com/larvit/larvitbase",
     "type": "git"
   },
-  "version": "1.1.1",
   "readmeFilename": "README.md",
   "scripts": {
     "test": "mocha"

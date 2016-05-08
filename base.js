@@ -223,6 +223,14 @@ exports = module.exports = function(customOptions) {
 				}
 			};
 
+			// Not multipart, fetch raw body
+			if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+				req.on('data', function(data) {
+					formRawBody += data;
+				});
+			}
+
+			// When the callback to form.parse() is ran, all body is received
 			form.parse(req, function(err, fields, files) {
 				if (err) {
 					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message);
