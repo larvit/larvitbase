@@ -224,7 +224,7 @@ exports = module.exports = function(customOptions) {
 			};
 
 			// Not multipart, fetch raw body
-			if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+			if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
 				req.on('data', function(data) {
 					formRawBody += data;
 				});
