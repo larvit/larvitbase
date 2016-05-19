@@ -444,7 +444,9 @@ exports = module.exports = function(customOptions) {
 		throw err;
 	});
 
-	returnObj.server.listen(options.port, options.host);
+	returnObj.server.listen(options.port, options.host, function() {
+		returnObj.emit('serverListening');
+	});
 
 	return returnObj;
 };
