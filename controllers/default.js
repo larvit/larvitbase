@@ -1,7 +1,7 @@
 'use strict';
 
-exports.run = function(request, response, callback) {
-	var data = {
+exports.run = function(req, res, cb) {
+	const data = {
 		'_global': {
 			'warthog': false
 		},
@@ -11,5 +11,5 @@ exports.run = function(request, response, callback) {
 		'foo': 'bar'
 	};
 
-	callback(null, request, response, data);
+	cb(null, req, res, data);
 };

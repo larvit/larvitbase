@@ -102,7 +102,9 @@ describe('Basics', function() {
 		const req = http.request({'port': port, 'path': '/does_not_exist'}, function(res) {
 			assert.deepEqual(res.statusCode, 404);
 			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
-			res.on('data', function() {
+			res.on('data', function(chunk) {
+				assert.deepEqual(chunk.toString(), `<!DOCTYPE html>
+<html><head><title>File not found</title></head><body><h1>404</h1><h2>File not found</h2></body></html>`);
 			});
 			res.on('end', function() {
 				done();
@@ -119,6 +121,22 @@ describe('Basics', function() {
 			res.setEncoding('utf8');
 			res.on('data', function(chunk) {
 				assert.deepEqual(chunk, '{"_global":{"warthog":false},"head":{"title":"foobar"},"foo":"bar"}');
+			});
+			res.on('end', function() {
+				done();
+			});
+		});
+
+		req.end();
+	});
+
+	it('Test JSON output from a controller without template', function(done) {
+		const req = http.request({'port': port, 'path': '/notemplate'}, function(res) {
+			assert.deepEqual(res.statusCode, 200);
+			assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
+			res.setEncoding('utf8');
+			res.on('data', function(chunk) {
+				assert.deepEqual(chunk, '{"pjong":"peng"}');
 			});
 			res.on('end', function() {
 				done();

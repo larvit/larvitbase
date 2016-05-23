@@ -390,7 +390,7 @@ exports = module.exports = function(customOptions) {
 			htmlStr = view.render(templateName, data);
 
 			// If htmlStr is undefined, no template exists and that means no HTML, send JSON instead
-			if (htmlStr === undefined) {
+			if (htmlStr === undefined || htmlStr === false) {
 				log.verbose('larvitbase: sendToClient() - No template found for "' + templateName + '", falling back to JSON output');
 				req.type = 'json';
 			} else {
