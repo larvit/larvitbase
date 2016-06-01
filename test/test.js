@@ -146,3 +146,23 @@ describe('Basics', function() {
 		req.end();
 	});
 });
+
+describe('Corner cases', function() {
+	it('Should fetch a JSON static file instead of controller data', function(done) {
+		const req = http.request({'port': port, 'path': '/thefile.json'}, function(res) {
+			assert.deepEqual(res.statusCode, 200);
+			assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
+			res.setEncoding('utf8');
+			res.on('data', function(chunk) {
+				const resJson = JSON.parse(chunk);
+
+				assert.deepEqual(resJson.content, 'foo');
+			});
+			res.on('end', function() {
+				done();
+			});
+		});
+
+		req.end();
+	});
+});
