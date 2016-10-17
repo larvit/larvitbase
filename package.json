@@ -25,7 +25,7 @@
   "devDependencies": {
     "eslint": "^3.8.0",
     "freeport": "^1.0.5",
-    "mocha": "^3.1.2",
+    "mocha": "^3.1.2"
   },
   "keywords": [
     "framework",
