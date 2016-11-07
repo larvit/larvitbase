@@ -1,22 +1,22 @@
 'use strict';
 
-const formidable = require('formidable'),
-      Lviews     = require('larvitviews'),
-      events     = require('events'),
-      merge      = require('utils-merge'),
-      utils      = require('larvitutils'),
-      path       = require('path'),
-      http       = require('http'),
-      cuid       = require('cuid'),
-      send       = require('send'),
-      log        = require('winston'),
-      url        = require('url'),
-      qs         = require('qs'),
-      _          = require('lodash');
+const	formidable	= require('formidable'),
+	Lviews	= require('larvitviews'),
+	events	= require('events'),
+	merge	= require('utils-merge'),
+	utils	= require('larvitutils'),
+	path	= require('path'),
+	http	= require('http'),
+	cuid	= require('cuid'),
+	send	= require('send'),
+	log	= require('winston'),
+	url	= require('url'),
+	qs	= require('qs'),
+	_	= require('lodash');
 
-let options,
-    router,
-    view;
+let	options,
+	router,
+	view;
 
 exports = module.exports = function(customOptions) {
 	const returnObj = new events.EventEmitter();
@@ -143,8 +143,8 @@ exports = module.exports = function(customOptions) {
 				log.debug('larvitbase: Request #' + req.cuid + ' - Serving static file: ' + req.routeResult.staticFullPath);
 
 				res.staticSender = send(req, req.routeResult.staticFullPath, {
-					'index': false,
-					'root': '/'
+					'index':	false,
+					'root':	'/'
 				});
 
 				// Send (pipe) the file over to the client via the response object
@@ -174,9 +174,9 @@ exports = module.exports = function(customOptions) {
 	 * @param func sendToClient(err, req, res, data) where data is the data that should be sent
 	 */
 	returnObj.parseRequest = function(req, res) {
-		let protocol,
-		    form,
-		    host;
+		let	protocol,
+			form,
+			host;
 
 		if (req.connection && req.connection.encrypted) {
 			protocol = 'https';
@@ -193,9 +193,10 @@ exports = module.exports = function(customOptions) {
 		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
-			let formRawBody     = '';
-			form                = new formidable.IncomingForm();
-			form.keepExtensions = true;
+			let	formRawBody	= '';
+
+			form	= new formidable.IncomingForm();
+			form.keepExtensions	= true;
 
 			// Use formidable to handle files but qs to handle formdata
 			form.onPart = function(part) {
@@ -235,8 +236,8 @@ exports = module.exports = function(customOptions) {
 				if (err) {
 					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message);
 				} else {
-					req.formFields = qs.parse(formRawBody);
-					req.formFiles  = files;
+					req.formFields	= qs.parse(formRawBody);
+					req.formFiles	= files;
 				}
 				returnObj.executeController(req, res);
 			});
@@ -253,8 +254,8 @@ exports = module.exports = function(customOptions) {
 	 * @param obj res - standard response object
 	 */
 	function serveRequest(req, res) {
-		req.cuid      = cuid();
-		req.startTime = process.hrtime();
+		req.cuid	= cuid();
+		req.startTime	= process.hrtime();
 		log.debug('larvitbase: Starting request #' + req.cuid + ' to: "' + req.url);
 
 		function runBeforeWare(i) {
@@ -304,9 +305,9 @@ exports = module.exports = function(customOptions) {
 	};
 
 	returnObj.sendToClient = function(err, req, res, data) {
-		let splittedPath,
-		    templateName,
-		    htmlStr;
+		let	splittedPath,
+			templateName,
+			htmlStr;
 
 		function sendErrorToClient() {
 			res.writeHead(500, {'Content-Type': 'text/plain'});
@@ -324,11 +325,11 @@ exports = module.exports = function(customOptions) {
 			res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
 			try {
-				jsonStr = JSON.stringify(data);
+				jsonStr	= JSON.stringify(data);
 			} catch(err) {
-				res.statusCode = 500;
+				res.statusCode	= 500;
 				log.error('larvitbase: sendToClient() - sendJsonToClient() - Could not transform data to JSON: "' + err.message + '" JSON.inspect(): "' + require('util').inspect(data, {'depth': null}));
-				jsonStr = '{"error": "' + err.message + '"}';
+				jsonStr	= '{"error": "' + err.message + '"}';
 			}
 
 			res.end(jsonStr);
@@ -349,16 +350,18 @@ exports = module.exports = function(customOptions) {
 		}
 
 		if ( ! req.urlParsed) {
-			let err = new Error('larvitbase: req.urlParsed is not set');
-			log.error(err.message);
+			let	err	= new Error('larvitbase: req.urlParsed is not set');
 
+			log.error(err.message);
 			sendErrorToClient();
+
 			return;
 		}
 
 		if (err) {
 			log.error('larvitbase: sendToClient() - got error from caller: "' + err.message + '"');
 			sendErrorToClient();
+
 			return;
 		}
 
@@ -366,6 +369,7 @@ exports = module.exports = function(customOptions) {
 		if (res.statusCode.toString().substring(0, 1) === '3') {
 			log.debug('larvitbase: sendToClient() - statusCode "' + res.statusCode + '" starting with 3, ending response.');
 			res.end();
+
 			return;
 		} else {
 			log.silly('larvitbase: sendToClient() - statusCode "' + res.statusCode + '" not starting with 3, continue.');
@@ -375,26 +379,26 @@ exports = module.exports = function(customOptions) {
 
 		// We need to set the request type. Can be either json or html
 		if (splittedPath[splittedPath.length - 1] === 'json') {
-			req.type                       = 'json';
-			req.routeResult.controllerName = req.routeResult.controllerName.substring(0, req.routeResult.controllerName.length - 5);
+			req.type	= 'json';
+			req.routeResult.controllerName	= req.routeResult.controllerName.substring(0, req.routeResult.controllerName.length - 5);
 			if (req.routeResult.controllerName === '') {
 				log.info('larvitbase: sendToClient() - req.controllerName is an empty string, falling back to "default"');
-				req.routeResult.controllerName = 'default';
+				req.routeResult.controllerName	= 'default';
 			}
 		} else {
-			templateName = res.templateName;
+			templateName	= res.templateName;
 			if (templateName === undefined) {
-				templateName = req.routeResult.controllerName;
+				templateName	= req.routeResult.controllerName;
 			}
 
-			htmlStr = view.render(templateName, data);
+			htmlStr	= view.render(templateName, data);
 
 			// If htmlStr is undefined, no template exists and that means no HTML, send JSON instead
 			if (htmlStr === undefined || htmlStr === false) {
 				log.verbose('larvitbase: sendToClient() - No template found for "' + templateName + '", falling back to JSON output');
-				req.type = 'json';
+				req.type	= 'json';
 			} else {
-				req.type = 'html';
+				req.type	= 'html';
 			}
 		}
 
@@ -407,12 +411,12 @@ exports = module.exports = function(customOptions) {
 
 	// Set default options
 	options = merge({
-		'controllersPath': 'controllers',
-		'pubFilePath':     'public',
-		'tmplDir':         'public/tmpl',
-		'port':            8001,
-		'customRoutes':    [],
-		'middleware':      []
+		'controllersPath':	'controllers',
+		'pubFilePath':	'public',
+		'tmplDir':	'public/tmpl',
+		'port':	8001,
+		'customRoutes':	[],
+		'middleware':	[]
 	}, customOptions);
 
 	if (options.controllersPath[0] === '/') {
@@ -422,15 +426,15 @@ exports = module.exports = function(customOptions) {
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
 	router = require('larvitrouter')({
-		'customRoutes':    options.customRoutes,
-		'controllersPath': options.controllersPath,
-		'pubFilePath':     options.pubFilePath
+		'customRoutes':	options.customRoutes,
+		'controllersPath':	options.controllersPath,
+		'pubFilePath':	options.pubFilePath
 	});
 
-	view = new Lviews(options);
+	view	= new Lviews(options);
 
 	if (options.sendToClient !== undefined) {
-		returnObj.sendToClient = options.sendToClient;
+		returnObj.sendToClient	= options.sendToClient;
 	}
 
 	returnObj.server = http.createServer(serveRequest);
