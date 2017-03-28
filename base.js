@@ -407,12 +407,12 @@ exports = module.exports = function(customOptions) {
 
 	// Set default options
 	options = merge({
-		'controllersPath': 'controllers',
-		'pubFilePath':     'public',
-		'tmplDir':         'public/tmpl',
-		'port':            8001,
-		'customRoutes':    [],
-		'middleware':      []
+		'controllersPath':	'controllers',
+		'pubFilePath':	'public',
+		'tmplDir':	'public/tmpl',
+		'port':	8001,
+		'customRoutes':	[],
+		'middleware':	[]
 	}, customOptions);
 
 	if (options.controllersPath[0] === '/') {
@@ -422,9 +422,9 @@ exports = module.exports = function(customOptions) {
 	log.info('larvitbase: Creating server on ' + options.host + ':' + options.port);
 
 	router = require('larvitrouter')({
-		'customRoutes':    options.customRoutes,
-		'controllersPath': options.controllersPath,
-		'pubFilePath':     options.pubFilePath
+		'customRoutes':	options.customRoutes,
+		'controllersPath':	options.controllersPath,
+		'pubFilePath':	options.pubFilePath
 	});
 
 	view = new Lviews(options);
