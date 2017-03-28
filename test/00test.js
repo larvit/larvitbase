@@ -1,25 +1,25 @@
 'use strict';
 
-const assert = require('assert'),
-      http   = require('http'),
-      log    = require('winston');
+const	assert	= require('assert'),
+	http	= require('http'),
+	log	= require('winston');
 
 let port;
 
 // Set up winston
 log.remove(log.transports.Console);
 log.add(log.transports.Console, {
-	'level':     'warn',
-	'colorize':  true,
-	'timestamp': true,
-	'json':      false
+	'level':	'warn',
+	'colorize':	true,
+	'timestamp':	true,
+	'json':	false
 });
 
 process.cwd('..');
 
 before(function(done) {
 	require('freeport')(function(err, tmpPort) {
-		assert( ! err, 'err should be negative');
+		if (err) throw err;
 
 		port = tmpPort;
 
@@ -27,8 +27,8 @@ before(function(done) {
 		require(process.cwd() + '/base.js')({
 			'port': port,
 			'customRoutes': [{
-				'regex':          '^/en_slemmig_torsk_i_en_brödrost$',
-				'controllerName': 'default'
+				'regex':	'^/en_slemmig_torsk_i_en_brödrost$',
+				'controllerName':	'default'
 			}]
 		});
 
