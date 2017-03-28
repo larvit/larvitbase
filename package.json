@@ -1,6 +1,6 @@
 {
   "name": "larvitbase",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "author": {
     "name": "Mikael 'Lilleman' Göransson",
     "email": "lilleman@larvit.se",
@@ -17,7 +17,7 @@
     "larvitviews": "^1.0.1",
     "lodash": "^4.11.2",
     "qs": "^6.1.0",
-    "send": "^0.14.1",
+    "send": "^0.15.1",
     "utils-merge": "^1.0.0",
     "winston": "^2.2.0"
   },
