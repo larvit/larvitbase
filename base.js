@@ -114,12 +114,7 @@ exports = module.exports = function(customOptions) {
 		res.runController = function() {
 			log.debug('larvitbase: Request #' + req.cuid + ' - Running controller: ' + req.routeResult.controllerName + ' with path: ' + req.routeResult.controllerFullPath);
 
-			try {
-				require(req.routeResult.controllerFullPath).run(req, res, res.runSendToClient);
-			} catch (err) {
-				log.error('larvitbase: Request #' + req.cuid + ' - Running controller: ' + req.routeResult.controllerName + ' err: ' + err.message);
-				res.runSendToClient(err, req, res, {});
-			}
+			require(req.routeResult.controllerFullPath).run(req, res, res.runSendToClient);
 		};
 
 		res.loadMiddleware = function(i) {
