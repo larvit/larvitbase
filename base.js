@@ -193,7 +193,7 @@ exports = module.exports = function(customOptions) {
 		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
-			req.rawBody	= '';
+			req.formRawBody	= '';
 
 			form	= new formidable.IncomingForm();
 			form.keepExtensions	= true;
@@ -206,14 +206,14 @@ exports = module.exports = function(customOptions) {
 
 				// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
 				} else {
-					if (req.rawBody !== '') {
-						req.rawBody += '&';
+					if (req.formRawBody !== '') {
+						req.formRawBody += '&';
 					}
 
-					req.rawBody += encodeURIComponent(part.name) + '=';
+					req.formRawBody += encodeURIComponent(part.name) + '=';
 
 					part.on('data', function(data) {
-						req.rawBody += encodeURIComponent(data);
+						req.formRawBody += encodeURIComponent(data);
 					});
 					//part.on('end', function() {
 					//
@@ -224,19 +224,24 @@ exports = module.exports = function(customOptions) {
 				}
 			};
 
-			// Not multipart, fetch raw body
-			if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
-				req.on('data', function(data) {
-					req.rawBody += data;
-				});
-			}
+			req.rawBody = '';
+
+			// Save the raw body
+			req.on('data', function (data) {
+				// Not multipart, fetch raw body
+				if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
+					req.formRawBody += data;
+				}
+
+				req.rawBody += data;
+			});
 
 			// When the callback to form.parse() is ran, all body is received
 			form.parse(req, function(err, fields, files) {
 				if (err) {
 					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message);
 				} else {
-					req.formFields	= qs.parse(req.rawBody);
+					req.formFields	= qs.parse(req.formRawBody);
 					req.formFiles	= files;
 				}
 				returnObj.executeController(req, res);
