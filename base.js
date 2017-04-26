@@ -193,7 +193,7 @@ exports = module.exports = function(customOptions) {
 		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
-			let	formRawBody	= '';
+			req.rawBody	= '';
 
 			form	= new formidable.IncomingForm();
 			form.keepExtensions	= true;
@@ -206,14 +206,14 @@ exports = module.exports = function(customOptions) {
 
 				// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
 				} else {
-					if (formRawBody !== '') {
-						formRawBody += '&';
+					if (req.rawBody !== '') {
+						req.rawBody += '&';
 					}
 
-					formRawBody += encodeURIComponent(part.name) + '=';
+					req.rawBody += encodeURIComponent(part.name) + '=';
 
 					part.on('data', function(data) {
-						formRawBody += encodeURIComponent(data);
+						req.rawBody += encodeURIComponent(data);
 					});
 					//part.on('end', function() {
 					//
@@ -227,7 +227,7 @@ exports = module.exports = function(customOptions) {
 			// Not multipart, fetch raw body
 			if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
 				req.on('data', function(data) {
-					formRawBody += data;
+					req.rawBody += data;
 				});
 			}
 
@@ -236,7 +236,7 @@ exports = module.exports = function(customOptions) {
 				if (err) {
 					log.warn('larvitbase: Request #' + req.cuid + ' - parseRequest() - ' + err.message);
 				} else {
-					req.formFields	= qs.parse(formRawBody);
+					req.formFields	= qs.parse(req.rawBody);
 					req.formFiles	= files;
 				}
 				returnObj.executeController(req, res);
