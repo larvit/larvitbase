@@ -17,8 +17,8 @@ log.add(log.transports.Console, {
 
 process.cwd('..');
 
-before(function(done) {
-	require('freeport')(function(err, tmpPort) {
+before(function (done) {
+	require('freeport')(function (err, tmpPort) {
 		if (err) throw err;
 
 		port = tmpPort;
@@ -36,13 +36,13 @@ before(function(done) {
 	});
 });
 
-describe('Basics', function() {
-	it('Test basic connection', function(done) {
-		const req = http.request({'port': port, 'path': '/'}, function(res) {
+describe('Basics', function () {
+	it('Test basic connection', function (done) {
+		const req = http.request({'port': port, 'path': '/'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
 			res.setEncoding('utf8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.deepEqual(chunk, `<html>
 	<head>
 		<title>foobar</title>
@@ -66,11 +66,11 @@ describe('Basics', function() {
 		req.end();
 	});
 
-	it('Test static file', function(done) {
-		const req = http.request({'port': port, 'path': '/favicon.ico'}, function(res) {
+	it('Test static file', function (done) {
+		const req = http.request({'port': port, 'path': '/favicon.ico'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'image/x-icon');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.notDeepEqual(chunk, undefined);
 			});
 			res.on('end', done);
@@ -79,11 +79,11 @@ describe('Basics', function() {
 		req.end();
 	});
 
-	it('Test custom route', function(done) {
-		const req = http.request({'port': port, 'path': '/en_slemmig_torsk_i_en_brödrost'}, function(res) {
+	it('Test custom route', function (done) {
+		const req = http.request({'port': port, 'path': '/en_slemmig_torsk_i_en_brödrost'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.notDeepEqual(chunk, undefined);
 			});
 			res.on('end', done);
@@ -92,11 +92,11 @@ describe('Basics', function() {
 		req.end();
 	});
 
-	it('Test 404 page for non defined route', function(done) {
-		const req = http.request({'port': port, 'path': '/does_not_exist'}, function(res) {
+	it('Test 404 page for non defined route', function (done) {
+		const req = http.request({'port': port, 'path': '/does_not_exist'}, function (res) {
 			assert.deepEqual(res.statusCode, 404);
 			assert.deepEqual(res.headers['content-type'], 'text/html; charset=utf-8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.deepEqual(chunk.toString(), `<!DOCTYPE html>
 <html><head><title>File not found</title></head><body><h1>404</h1><h2>File not found</h2></body></html>`);
 			});
@@ -106,12 +106,12 @@ describe('Basics', function() {
 		req.end();
 	});
 
-	it('Test JSON output from default controller', function(done) {
-		const req = http.request({'port': port, 'path': '/default.json'}, function(res) {
+	it('Test JSON output from default controller', function (done) {
+		const req = http.request({'port': port, 'path': '/default.json'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
 			res.setEncoding('utf8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.deepEqual(chunk, '{"_global":{"warthog":false},"head":{"title":"foobar"},"foo":"bar"}');
 			});
 			res.on('end', done);
@@ -120,12 +120,12 @@ describe('Basics', function() {
 		req.end();
 	});
 
-	it('Test JSON output from a controller without template', function(done) {
-		const req = http.request({'port': port, 'path': '/notemplate'}, function(res) {
+	it('Test JSON output from a controller without template', function (done) {
+		const req = http.request({'port': port, 'path': '/notemplate'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'application/json; charset=utf-8');
 			res.setEncoding('utf8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.deepEqual(chunk, '{"pjong":"peng"}');
 			});
 			res.on('end', done);
@@ -135,13 +135,13 @@ describe('Basics', function() {
 	});
 });
 
-describe('Corner cases', function() {
-	it('Should fetch a JSON static file instead of controller data', function(done) {
-		const req = http.request({'port': port, 'path': '/thefile.json'}, function(res) {
+describe('Corner cases', function () {
+	it('Should fetch a JSON static file instead of controller data', function (done) {
+		const req = http.request({'port': port, 'path': '/thefile.json'}, function (res) {
 			assert.deepEqual(res.statusCode, 200);
 			assert.deepEqual(res.headers['content-type'], 'application/json');
 			res.setEncoding('utf8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				const resJson = JSON.parse(chunk);
 
 				assert.deepEqual(resJson.content, 'foo');
@@ -152,13 +152,13 @@ describe('Corner cases', function() {
 		req.end();
 	});
 
-	it('Should not crash when sending to response after headers have been sent', function(done) {
+	it('Should not crash when sending to response after headers have been sent', function (done) {
 		const req = http.request({'port': port, 'path': '/sendafterheaders'}, checkRes);
 
 		function checkRes(res) {
 			assert.deepEqual(res.statusCode,	200);
 			res.setEncoding('utf8');
-			res.on('data', function(chunk) {
+			res.on('data', function (chunk) {
 				assert.deepEqual(chunk, 'something');
 			});
 			res.on('end', done);
