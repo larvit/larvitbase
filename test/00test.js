@@ -60,9 +60,7 @@ describe('Basics', function() {
 	</body>
 </html>`);
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -75,9 +73,7 @@ describe('Basics', function() {
 			res.on('data', function(chunk) {
 				assert.notDeepEqual(chunk, undefined);
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -90,9 +86,7 @@ describe('Basics', function() {
 			res.on('data', function(chunk) {
 				assert.notDeepEqual(chunk, undefined);
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -106,9 +100,7 @@ describe('Basics', function() {
 				assert.deepEqual(chunk.toString(), `<!DOCTYPE html>
 <html><head><title>File not found</title></head><body><h1>404</h1><h2>File not found</h2></body></html>`);
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -122,9 +114,7 @@ describe('Basics', function() {
 			res.on('data', function(chunk) {
 				assert.deepEqual(chunk, '{"_global":{"warthog":false},"head":{"title":"foobar"},"foo":"bar"}');
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -138,9 +128,7 @@ describe('Basics', function() {
 			res.on('data', function(chunk) {
 				assert.deepEqual(chunk, '{"pjong":"peng"}');
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
 
 		req.end();
@@ -158,10 +146,23 @@ describe('Corner cases', function() {
 
 				assert.deepEqual(resJson.content, 'foo');
 			});
-			res.on('end', function() {
-				done();
-			});
+			res.on('end', done);
 		});
+
+		req.end();
+	});
+
+	it('Should not crash when sending to response after headers have been sent', function(done) {
+		const req = http.request({'port': port, 'path': '/sendafterheaders'}, checkRes);
+
+		function checkRes(res) {
+			assert.deepEqual(res.statusCode,	200);
+			res.setEncoding('utf8');
+			res.on('data', function(chunk) {
+				assert.deepEqual(chunk, 'something');
+			});
+			res.on('end', done);
+		}
 
 		req.end();
 	});

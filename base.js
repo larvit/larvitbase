@@ -350,12 +350,17 @@ exports = module.exports = function(customOptions) {
 			res.end(htmlStr);
 		}
 
+		if (res.headersSent) {
+			log.verbose('larvitbase: sendToClient() - Headers already sent, do not send to client here');
+			return;
+		}
+
 		if (data === undefined) {
 			data = {};
 		}
 
 		if ( ! req.urlParsed) {
-			let	err	= new Error('larvitbase: req.urlParsed is not set');
+			const	err	= new Error('larvitbase: req.urlParsed is not set');
 
 			log.error(err.message);
 			sendErrorToClient();
