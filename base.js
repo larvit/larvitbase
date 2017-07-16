@@ -252,11 +252,15 @@ exports = module.exports = function (customOptions) {
 			});
 
 			req.on('end', function () {
-				if (Array.isArray(req.formRawBody)) {
-					req.formRawBody	= Buffer.concat(req.formRawBody).toString();
-				}
+				try {
+					if (Array.isArray(req.formRawBody)) {
+						req.formRawBody	= Buffer.concat(req.formRawBody).toString();
+					}
 
-				req.rawBody	= Buffer.concat(req.rawBody).toString();
+					req.rawBody	= Buffer.concat(req.rawBody).toString();
+				} catch (err) {
+					log.error(logPrefix + 'Could not Buffer.concat() body parts. This is probably because of nodes string size limitation. err: ' + err.message);
+				}
 			});
 
 			// When the callback to form.parse() is ran, all body is received
