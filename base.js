@@ -198,7 +198,12 @@ exports = module.exports = function (customOptions) {
 		req.urlParsed = url.parse(protocol + '://' + host + req.url, true);
 
 		if (returnObj.formidableParseable(req)) {
-			req.formRawBody	= '';
+			if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
+				req.formRawBody	= [];
+			} else {
+				req.formRawBody	= '';
+			}
+			req.rawBody	= [];
 
 			form	= new formidable.IncomingForm();
 			form.keepExtensions	= true;
@@ -211,6 +216,10 @@ exports = module.exports = function (customOptions) {
 
 				// Use qs to handle array-like stuff like field[a] = b becoming {'field': {'a': 'b'}}
 				} else {
+					if (Array.isArray(req.formRawBody)) {
+						req.formRawBody	= '';
+					}
+
 					if (req.formRawBody !== '') {
 						req.formRawBody += '&';
 					}
@@ -229,16 +238,25 @@ exports = module.exports = function (customOptions) {
 				}
 			};
 
-			req.rawBody = '';
+			// Details about concatenating the body
+			// https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/#request-body
 
 			// Save the raw body
 			req.on('data', function (data) {
-				// Not multipart, fetch raw body
+				// Not multipart, fetch raw body to formRawBody as well
 				if (req.headers['content-type'].match(/x-www-form-urlencoded/i)) {
-					req.formRawBody += data;
+					req.formRawBody.push(data);
 				}
 
-				req.rawBody += data;
+				req.rawBody.push(data);
+			});
+
+			req.on('end', function () {
+				if (Array.isArray(req.formRawBody)) {
+					req.formRawBody	= Buffer.concat(req.formRawBody).toString();
+				}
+
+				req.rawBody	= Buffer.concat(req.rawBody).toString();
 			});
 
 			// When the callback to form.parse() is ran, all body is received
