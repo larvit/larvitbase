@@ -268,7 +268,7 @@ exports = module.exports = function (customOptions) {
 				if (err) {
 					log.warn(logPrefix + err.message);
 				} else {
-					req.formFields	= qs.parse(req.formRawBody);
+					req.formFields	= qs.parse(req.formRawBody, { 'parameterLimit': 10000});
 					req.formFiles	= files;
 				}
 				returnObj.executeController(req, res);
