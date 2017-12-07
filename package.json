@@ -4,7 +4,7 @@
   "description": "http application base framework",
   "main": "index.js",
   "scripts": {
-    "test": "node test/run.js"
+    "test": "./node_modules/tape/bin/tape ./test/*"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,8 @@
   },
   "homepage": "https://github.com/larvit/larvitbase#readme",
   "devDependencies": {
+    "eslint": "^4.12.1",
+    "request": "^2.83.0",
     "tape": "^4.8.0"
   }
 }

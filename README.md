@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/larvit/larvitbase.svg?branch=master)](https://travis-ci.org/larvit/larvitbase) [![Dependencies](https://david-dm.org/larvit/larvitbase.svg)](https://david-dm.org/larvit/larvitbase.svg)
+
 # http application base framework
 
 ## What is it?
@@ -8,6 +10,7 @@ A scaled down version of [Express](http://expressjs.com). It is as micro as micr
 
 * More flexibility due to all functionality being in the middleware functions (no built-in "helpers", router, view system etc)
 * Better separations of concerns (routing, view system etc should not be a part of the base framework!)
+* No dependencies in production (only development dependencies)
 * Less is more
 
 ## Installation
