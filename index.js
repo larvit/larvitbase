@@ -3,7 +3,7 @@
 const	EventEmitter	= require('events').EventEmitter,
 	http	= require('http');
 
-function App(options) {
+function App(options, cb) {
 	const	that	= this;
 
 	function runMiddleware(nr, req, res) {
@@ -28,7 +28,7 @@ function App(options) {
 		runMiddleware(0, req, res);
 	});
 
-	that.httpServer.listen(that.options.httpOptions);
+	that.httpServer.listen(that.options.httpOptions, cb);
 }
 
 App.prototype	= Object.create(EventEmitter.prototype);
