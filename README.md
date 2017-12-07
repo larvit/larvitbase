@@ -1,8 +1,4 @@
-[![Build Status](https://travis-ci.org/larvit/larvitbase.svg?branch=master)](https://travis-ci.org/larvit/larvitbase) [![Dependencies](https://david-dm.org/larvit/larvitbase.svg)](https://david-dm.org/larvit/larvitbase.svg)
-
-# larvitbase
-
-Node.js micro framework
+# http application base framework
 
 ## Installation
 
@@ -10,150 +6,119 @@ Node.js micro framework
 npm i larvitbase
 ```
 
-## Basic usage
+## Usage
 
-In your application root directory, create a file named server.js with the following content:
+### Minimal basic example
+
+This will create a http server on port 8001 that will print "Hello world" whatever you send in.
 
 ```javascript
-'use strict';
-
-// Given config parameters is the default, all can be omitted
-require('larvitbase')({
-	'host':        '127.0.0.1',
-	'port':        8001,
-	'pubFilePath': './public',
-	'customRoutes': [{
-		'regex': '^/$', // Regexp to be matched for the given URL
-		'controllerName': 'default' // Name of the file in ./controllers/<filename>.js
-	}]
+const	lBase	= require('larvitbase');
+new lBase({
+	'httpOptions':	8001,
+	'middleware': [
+		function (req, res) {
+			res.end('Hello world');
+		}
+	]
 });
 ```
 
-### Controllers
+### A bit more usable example
 
-A controller needs to fill a few criterias.
+Normally you'd want a router, some templating, form handling and other stuff in your applications.
 
-It must reside in ./controllers/_controllerName_.js - for example ./controllers/default.js to match the above "/" route.
-
-It need to have the following structure:
+index.js:
 
 ```javascript
 'use strict';
 
-exports.run = function(request, response, callback) {
+const	appOptions	= {},
+	router	= new require('larvitrouter')(),
+	App	= require('larvitbase'),
+	ejs	= require('ejs'),
+	fs	= require('fs');
 
-	// This is the data we send back to the callback
-	// It can be calls to other subcontrollers, database calls etc
-	const data = {
+let	app;
 
-        // The _global will be appended on each template partials data
-        '_global': {
-            'warthog': false
-        },
+appOptions.httpOptions	= 8001;	//	Will be sent directly to nodes           
+//			http.createServer().listen(##here##) For
+//			more info, see:
+//			https://nodejs.org/api/http.html#http_class_http_server
 
-		'head': {
-			'title': 'foobar'
-		},
-		'foo': 'bar'
-	};
+// Without any middleware, nothing will ever happend and all calls will be left hanging
+// Middle ware functions are compatible with Express middleware functions
+appOptions.middleware	= [];
 
-	callback(null, request, response, data);
-}
+// Translte an url into a path to a controller
+// Will populate:
+// req.controllerPath
+// req.templatePath
+// See https://github.com/larvit/larvitrouter for more info
+appOptions.middleware.push(router.middleware);
+
+
+//appOptions.middleware.push(lBase.middleware.loadFormdata());
+
+// Run the controller that the router resolved for us
+// Controllers should populate res.data for this example to work
+appOptions.middleware.push(function (req, res, cb) {
+	require(res.controllerPath)(req, res, cb);
+});
+
+// Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
+appOptions.middleware.push(function (req, res, cb) {
+	ejs.renderFile(req.templatePath, res.data, cb);
+});
+
+// Start the app
+app	= new App(appOptions);
+
+// Handle errors in one of the middleweres during a request
+app.on('error', function (err, req, res) {
+	res.statusCode	= 500;
+	res.end('Internal server error: ' + err.message);
+});
+
+// Exposed stuff
+//app.httpServer	- the node http server instance
+//app.options	- the appOptions as used by the app
 ```
 
-### Templates
+controllers/foo.js:
 
-Larvitbase use [larvitviews](https://github.com/larvit/larvitviews), which in turn use [lodash templates](https://lodash.com/docs#template). They are fed with the data sent in the callback from the controller.
+```javascript
+'use strict';
 
-The templates resides by default in ./public/views/tmpl/_controllerName_.tmpl - for example ./public/viewstmpl/default.tmpl to match the above "/" route. From the controller, set response.templateName to something else to use a custom template if you do not wish to use the controller name.
+exports = module.exports = function (req, res, cb) {
+	res.data	= {'title': 'foo', 'heading': 'bar'};
+	cb();
+};
+```
 
-An example template can look like:
+public/templates/foo.ejs:
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
-	<%= _.render('head', obj) %>
+<!doctype html>
+<html>
+	<head>
+		<title><%= title %></title>
+	</head>
 	<body>
-		<h1>Look at our beautiful data below</h1>
-		<p><%= obj.foo %> or, for equal result use <%= foo %></p>
+		<h1><%= heading %></h1>
 	</body>
 </html>
 ```
 
-The example head section, ./public/views/tmpl/head.tmpl, can look like this:
+Now a request to /foo would render the HTML above.
 
-```html
-<head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-	<title><%= title %></title>
-</head>
-```
+## Middleware functions
 
-### Check that it works
+Middleware functions are compatible with [Express](http://expressjs.com), and follow the same principles:
 
-```bash
-node ./server.js
-```
+Middleware functions can perform the following tasks:
 
-## Advanced usage
-
-### Custom sendToClient
-
-The default behaviour for sending the controller data as JSON directly to the client or as HTML after parsed templates within the router can be omitted by passing a custom sendToClient() function in the options.
-
-This example prints the controller data as plain text to the browser:
-
-```javascript
-'use strict';
-
-require('larvitbase')({
-	'sendToClient': function(err, request, response, data) {
-		response.setHeader('Content-Type', 'text/plain; charset=utf-8');
-		response.writeHead(200);
-		response.end(data.toString());
-	}
-});
-```
-
-### Middleware
-
-Exact same syntax as express, use for example the express cookie middleware like this:
-
-```javascript
-'use strict';
-
-require('larvitbase')({
-	'middleware': [
-		require('cookies').express()
-	]
-});
-```
-
-### Afterware
-
-Afterware is ran just before the response is sent to the client. After the controller callback ran.
-
-The syntax is exactly the same as Middlewares:
-
-```javascript
-'use strict';
-
-require('larvitbase')({
-	'middleware': [
-		require('cookies').express(),
-		require('larvitsession').middleware()
-	],
-	'afterware': [
-		require('larvitsession').afterware()
-	]
-});
-```
-
-### Session data sent from previous call to controller JSON
-
-If request.session.data.nextCallData is set, it will be:
-
-1. Merged into controller data output on the next call, with low priority
-2. Erased from the session data, so it won't show up on the call after next
-
-The reason for the data structure is to harmonize with the larvitsession module, if it is loaded.
+* Execute any code.
+* Make changes to the request and the response objects.
+* End the request-response cycle.
+* Call the next middleware function in the stack.
