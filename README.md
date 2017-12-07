@@ -1,5 +1,15 @@
 # http application base framework
 
+## What is it?
+
+A scaled down version of [Express](http://expressjs.com). It is as micro as micro can be, it only runs an array of middlewere functions, nothing more.
+
+## Why?
+
+* More flexibility due to all functionality being in the middleware functions (no built-in "helpers", router, view system etc)
+* Better separations of concerns (routing, view system etc should not be a part of the base framework!)
+* Less is more
+
 ## Installation
 
 ```bash
@@ -13,9 +23,9 @@ npm i larvitbase
 This will create a http server on port 8001 that will print "Hello world" whatever you send in.
 
 ```javascript
-const	lBase	= require('larvitbase');
-new lBase({
-	'httpOptions':	8001,
+const App = require('larvitbase');
+new App({
+	'httpOptions': 8001,
 	'middleware': [
 		function (req, res) {
 			res.end('Hello world');
@@ -33,22 +43,22 @@ index.js:
 ```javascript
 'use strict';
 
-const	appOptions	= {},
-	router	= new require('larvitrouter')(),
-	App	= require('larvitbase'),
-	ejs	= require('ejs'),
-	fs	= require('fs');
+const appOptions = {},
+      router     = new require('larvitrouter')(),
+      App        = require('larvitbase'),
+      ejs        = require('ejs'),
+      fs         = require('fs');
 
 let	app;
 
-appOptions.httpOptions	= 8001;	//	Will be sent directly to nodes           
-//			http.createServer().listen(##here##) For
-//			more info, see:
-//			https://nodejs.org/api/http.html#http_class_http_server
+appOptions.httpOptions = 8001; // Will be sent directly to nodes
+//                                http.createServer().listen(##here##) For
+//                                more info, see:
+//                                https://nodejs.org/api/http.html#http_class_http_server
 
 // Without any middleware, nothing will ever happend and all calls will be left hanging
 // Middle ware functions are compatible with Express middleware functions
-appOptions.middleware	= [];
+appOptions.middleware = [];
 
 // Translte an url into a path to a controller
 // Will populate:
@@ -72,11 +82,11 @@ appOptions.middleware.push(function (req, res, cb) {
 });
 
 // Start the app
-app	= new App(appOptions);
+app = new App(appOptions);
 
 // Handle errors in one of the middleweres during a request
 app.on('error', function (err, req, res) {
-	res.statusCode	= 500;
+	res.statusCode = 500;
 	res.end('Internal server error: ' + err.message);
 });
 
@@ -91,7 +101,7 @@ controllers/foo.js:
 'use strict';
 
 exports = module.exports = function (req, res, cb) {
-	res.data	= {'title': 'foo', 'heading': 'bar'};
+	res.data = {'title': 'foo', 'heading': 'bar'};
 	cb();
 };
 ```
