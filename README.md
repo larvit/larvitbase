@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/larvit/larvitbase.svg?branch=master)](https://travis-ci.org/larvit/larvitbase) [![Dependencies](https://david-dm.org/larvit/larvitbase.svg)](https://david-dm.org/larvit/larvitbase.svg)
+[![Coverage Status](https://coveralls.io/repos/larvit/larvitbase/badge.svg)](https://coveralls.io/github/larvit/larvitbase)
 
 # http application base framework
 
