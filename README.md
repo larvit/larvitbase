@@ -52,7 +52,7 @@ const appOptions = {},
 
 let	app;
 
-// Translte an url into a path to a controller
+// Translate an url into a path to a controller
 // Will populate:
 // req.controllerPath
 // req.templatePath
