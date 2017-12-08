@@ -31,7 +31,11 @@ test('Basic request', function (t) {
 					if (req.url === '/foo') {
 						return cb(new Error('deng'));
 					}
+					cb();
+				},
+				function (req, res, cb) {
 					res.end('Hello world');
+					cb();
 				}
 			]
 		}, cb);
@@ -71,6 +75,13 @@ test('Basic request', function (t) {
 		if (err) {
 			t.fail('err: ' + err.message);
 		}
+		t.end();
+	});
+});
+
+test('Starting witout middleware', function (t) {
+	new App({}, function (err) {
+		t.equal(err instanceof Error, true);
 		t.end();
 	});
 });

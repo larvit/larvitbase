@@ -10,8 +10,7 @@ function App(options, cb) {
 		if (that.options.middleware[nr]) {
 			that.options.middleware[nr](req, res, function (err) {
 				if (err) {
-					that.emit('error', err, req, res);
-					return;
+					return that.emit('error', err, req, res);
 				}
 				runMiddleware(nr + 1, req, res);
 			});
@@ -21,7 +20,7 @@ function App(options, cb) {
 	that.options	= options;
 
 	if ( ! that.options || ! Array.isArray(that.options.middleware)) {
-		throw new Error('at least one middleware is required');
+		return cb(new Error('at least one middleware is required'));
 	}
 
 	that.httpServer	= http.createServer(function (req, res) {

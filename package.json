@@ -27,8 +27,10 @@
   "homepage": "https://github.com/larvit/larvitbase#readme",
   "devDependencies": {
     "async": "^2.6.0",
+    "coveralls": "^3.0.0",
     "eslint": "^4.12.1",
     "freeport": "^1.0.5",
+    "istanbul": "^0.4.5",
     "request": "^2.83.0",
     "tape": "^4.8.0",
     "tape-eslint": "^1.2.1"
