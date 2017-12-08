@@ -40,6 +40,101 @@ new App({
 
 ### A bit more usable example
 
+index.js:
+
+```javascript
+'use strict';
+
+const appOptions = {},
+      App        = require('larvitbase'),
+      ejs        = require('ejs'),
+      fs         = require('fs');
+
+let	app;
+
+// Translte an url into a path to a controller
+// Will populate:
+// req.controllerPath
+// req.templatePath
+function router(req, res, cb) {
+	if (req.url === '/') {
+		req.controllerPath	= __dirname + '/controllers/default.js';
+		req.templatePath	= __dirname + '/public/templates/default.ejs';
+	} else if (req.url === '/foo') {
+		req.controllerPath	= __dirname + '/controllers/foo.js';
+		req.templatePath	= __dirname + '/public/templates/default.ejs';
+	} else {
+		req.controllerPath	= __dirname + '/controllers/404.js';
+		req.templatePath	= __dirname + '/public/templates/404.ejs';
+	}
+	cb();
+}
+
+appOptions.httpOptions = 8001; // Will be sent directly to nodes
+//                                http.createServer().listen(##here##) For
+//                                more info, see:
+//                                https://nodejs.org/api/http.html#http_class_http_server
+
+// Without any middleware, nothing will ever happend and all calls will be left hanging
+// Middle ware functions are compatible with Express middleware functions
+appOptions.middleware = [];
+
+appOptions.middleware.push(router);
+
+// Run the controller that the router resolved for us
+// Controllers should populate res.data for this example to work
+appOptions.middleware.push(function (req, res, cb) {
+	require(res.controllerPath)(req, res, cb);
+});
+
+// Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
+appOptions.middleware.push(function (req, res, cb) {
+	ejs.renderFile(req.templatePath, res.data, cb);
+});
+
+// Start the app
+app = new App(appOptions);
+
+// Handle errors in one of the middleweres during a request
+app.on('error', function (err, req, res) {
+	res.statusCode = 500;
+	res.end('Internal server error: ' + err.message);
+});
+
+// Exposed stuff
+//app.httpServer	- the node http server instance
+//app.options	- the appOptions as used by the app
+```
+
+controllers/foo.js:
+
+```javascript
+'use strict';
+
+exports = module.exports = function (req, res, cb) {
+	res.data = {'title': 'foo', 'heading': 'bar'};
+	cb();
+};
+```
+
+public/templates/foo.ejs:
+
+```html
+<!doctype html>
+<html>
+	<head>
+		<title><%= title %></title>
+	</head>
+	<body>
+		<h1><%= heading %></h1>
+	</body>
+</html>
+```
+
+Now a request to /foo would render the HTML above.
+
+### Example with some custom, external libraries
+
 Normally you'd want a router, some templating, form handling and other stuff in your applications.
 
 index.js:
