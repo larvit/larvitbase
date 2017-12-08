@@ -10,6 +10,7 @@ A scaled down version of [Express](http://expressjs.com). It is as micro as micr
 ## Why?
 
 * More flexibility due to all functionality being in the middleware functions (no built-in "helpers", router, view system etc)
+* In contrast to Express, it is possible to run a middleware before the router, or after the controller
 * Better separations of concerns (routing, view system etc should not be a part of the base framework!)
 * No dependencies in production (only development dependencies)
 * Less is more
