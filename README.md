@@ -84,7 +84,7 @@ appOptions.middleware.push(router);
 // Run the controller that the router resolved for us
 // Controllers should populate res.data for this example to work
 appOptions.middleware.push(function (req, res, cb) {
-	require(res.controllerPath)(req, res, cb);
+	require(req.controllerPath)(req, res, cb);
 });
 
 // Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
@@ -172,7 +172,7 @@ appOptions.middleware.push(router.middleware);
 // Run the controller that the router resolved for us
 // Controllers should populate res.data for this example to work
 appOptions.middleware.push(function (req, res, cb) {
-	require(res.controllerPath)(req, res, cb);
+	require(req.controllerPath)(req, res, cb);
 });
 
 // Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
