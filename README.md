@@ -41,6 +41,13 @@ new App({
 
 ### A bit more usable example
 
+#### Required external packages
+
+* [larvitrouter](https://www.npmjs.com/package/larvitrouter)
+* [ejs](https://www.npmjs.com/package/ejs)
+
+#### Example files
+
 index.js:
 
 ```javascript
@@ -54,19 +61,13 @@ const appOptions = {},
 let	app;
 
 // Translate an url into a path to a controller
-// Will populate:
-// req.controllerPath
-// req.templatePath
 function router(req, res, cb) {
 	if (req.url === '/') {
 		req.controllerPath	= __dirname + '/controllers/default.js';
-		req.templatePath	= __dirname + '/public/templates/default.ejs';
 	} else if (req.url === '/foo') {
 		req.controllerPath	= __dirname + '/controllers/foo.js';
-		req.templatePath	= __dirname + '/public/templates/default.ejs';
 	} else {
 		req.controllerPath	= __dirname + '/controllers/404.js';
-		req.templatePath	= __dirname + '/public/templates/404.ejs';
 	}
 	cb();
 }
@@ -88,9 +89,9 @@ appOptions.middleware.push(function (req, res, cb) {
 	require(req.controllerPath)(req, res, cb);
 });
 
-// Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
+// Send the data to the client
 appOptions.middleware.push(function (req, res, cb) {
-	ejs.renderFile(req.templatePath, res.data, cb);
+	res.end(res.data);
 });
 
 // Start the app
@@ -113,7 +114,15 @@ controllers/foo.js:
 'use strict';
 
 exports = module.exports = function (req, res, cb) {
-	res.data = {'title': 'foo', 'heading': 'bar'};
+	res.data = `<!doctype html>
+<html>
+	<head>
+		<title>Hello</title>
+	</head>
+	<body>
+		<h1>this is static</h1>
+	</body>
+</html>`;
 	cb();
 };
 ```
@@ -136,7 +145,12 @@ Now a request to /foo would render the HTML above.
 
 ### Example with some custom, external libraries
 
-Normally you'd want a router, some templating, form handling and other stuff in your applications.
+#### Required external packages
+
+* [larvitrouter](https://www.npmjs.com/package/larvitrouter)
+* [ejs](https://www.npmjs.com/package/ejs)
+
+#### Example files
 
 index.js:
 
@@ -144,7 +158,8 @@ index.js:
 'use strict';
 
 const appOptions = {},
-      router     = new require('larvitrouter')(),
+      Router     = require('larvitrouter'),
+      router     = new Router(),
       App        = require('larvitbase'),
       ejs        = require('ejs'),
       fs         = require('fs');
@@ -156,29 +171,36 @@ appOptions.httpOptions = 8001; // Will be sent directly to nodes
 //                                more info, see:
 //                                https://nodejs.org/api/http.html#http_class_http_server
 
-// Without any middleware, nothing will ever happend and all calls will be left hanging
-// Middle ware functions are compatible with Express middleware functions
 appOptions.middleware = [];
 
-// Translte an url into a path to a controller
+// Translate an url into a path to a controller and more
 // Will populate:
-// req.controllerPath
-// req.templatePath
-// See https://github.com/larvit/larvitrouter for more info
-appOptions.middleware.push(router.middleware);
-
-
-//appOptions.middleware.push(lBase.middleware.loadFormdata());
+// req.routed.controllerPath
+// req.routed.controllerFullPath
+// req.routed.staticPath
+// req.routed.staticFullPath
+// req.routed.templatePath
+// req.routed.templateFullPath
+appOptions.middleware.push(function (req, res, cb) {
+	router.resolve(req.url, function (err, result) {
+		req.routed	= result;
+		cb(err);
+	});
+});
 
 // Run the controller that the router resolved for us
 // Controllers should populate res.data for this example to work
 appOptions.middleware.push(function (req, res, cb) {
-	require(req.controllerPath)(req, res, cb);
+	require(req.routed.controllerFullPath)(req, res, cb);
 });
 
 // Transform the res.data into HTML with a template engine, in our case [EJS](http://ejs.co/)
 appOptions.middleware.push(function (req, res, cb) {
-	ejs.renderFile(req.templatePath, res.data, cb);
+	ejs.renderFile(req.routed.templateFullPath, res.data, function (err, html) {
+		if (err) return cb(err);
+		res.setHeader('Content-Type', 'text/html; charset=utf-8');
+		res.end(html);
+	});
 });
 
 // Start the app
