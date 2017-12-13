@@ -41,13 +41,6 @@ new App({
 
 ### A bit more usable example
 
-#### Required external packages
-
-* [larvitrouter](https://www.npmjs.com/package/larvitrouter)
-* [ejs](https://www.npmjs.com/package/ejs)
-
-#### Example files
-
 index.js:
 
 ```javascript
