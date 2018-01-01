@@ -41,7 +41,7 @@ test('Basic request', function (t) {
 		}, cb);
 
 		app.on('error', function (err, req, res) {
-			res.statusCode = 500;
+			res.statusCode	= 500;
 			res.end('Internal server error: ' + err.message);
 		});
 	});
