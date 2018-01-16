@@ -20,7 +20,9 @@ function App(options, cb) {
 	that.options	= options;
 
 	if ( ! that.options || ! Array.isArray(that.options.middleware)) {
-		return cb(new Error('at least one middleware is required'));
+		const	err	= new Error('At least one middleware is required');
+		log.error(logPrefix + err.message);
+		return cb(err);
 	}
 
 	that.httpServer = http.createServer(function (req, res) {
@@ -58,16 +60,29 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 		that	= this;
 
 	if (that.options.middleware[nr]) {
+		const	middlewareStart	= that.hrTimeToMs();
+
 		that.options.middleware[nr](req, res, function (err) {
+			const	runTime	= (that.hrTimeToMs() - middlewareStart).toFixed(3);
+
 			if (err) {
+				log.warn(logPrefix + 'Error running middleware: ' + err.message);
 				return that.emit('error', err, req, res);
 			}
+
+			req.timing['middleware_' + String(nr).padStart(3, '0')] = {
+				'runTime':	runTime,
+				'name':	that.options.middleware[nr].name
+			};
+			log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' middleware_' + String(nr).padStart(3, '0') + ' (' + that.options.middleware[nr].name + '): ' + runTime);
+
+			// Run the next middleware
 			that.runMiddleware(nr + 1, req, res);
 		});
 	} else {
 		req.timing.reqEnd	= that.hrTimeToMs();
 		req.timing.totReqTime	= (req.timing.reqEnd - req.timing.reqStart).toFixed(3);
-		log.verbose(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, runtime: ' + req.timing.totReqTime + 'ms');
+		log.verbose(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, run time: ' + req.timing.totReqTime + 'ms');
 	}
 };
 

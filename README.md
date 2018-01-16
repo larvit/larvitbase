@@ -29,6 +29,7 @@ This will create a http server on port 8001 that will print "Hello world" whatev
 
 ```javascript
 const App = require('larvitbase');
+
 new App({
 	'httpOptions': 8001,
 	'middleware': [
@@ -78,12 +79,12 @@ appOptions.middleware.push(router);
 
 // Run the controller that the router resolved for us
 // Controllers should populate res.data for this example to work
-appOptions.middleware.push(function (req, res, cb) {
+appOptions.middleware.push(function controller(req, res, cb) {
 	require(req.controllerPath)(req, res, cb);
 });
 
 // Send the data to the client
-appOptions.middleware.push(function (req, res, cb) {
+appOptions.middleware.push(function sendToClient(req, res, cb) {
 	res.end(res.data);
 });
 
@@ -99,6 +100,7 @@ app.on('error', function (err, req, res) {
 // Exposed stuff
 //app.httpServer	- the node http server instance
 //app.options	- the appOptions as used by the app
+//app.timing	- how long each middleware as well as the complete req/res took
 ```
 
 controllers/foo.js:
@@ -236,6 +238,29 @@ public/templates/foo.ejs:
 ```
 
 Now a request to /foo would render the HTML above.
+
+## Logging
+
+This module logs using [winston](https://www.npmjs.com/package/winston), please consult the documentation for that package for details on how to configure winson. No configuration is needed to make larvitbase run.
+
+Log levels used:
+
+* error	- Fatal! Application should not continue to run at all
+* warn	- Important problem. Application might be able to continue, but this should be addressed to maintain stability.
+* info	- Important information. Probably not a problem, but information of high value to sysops.
+* verbose	- Nice-to-have information. Statistis about each request run time and such.
+
+**Do not use in production**
+
+* debug	- Debug information. Further statistics and other debug info. Will flood your logs if used in production!
+* silly	- Silly amounts of information. Will flood your logs even if not in production, your terminal will explode.
+
+## Further middlewares
+
+Other middlewares that is highly usable
+
+* [larvitreqparser](https://www.npmjs.com/package/larvitreqparser) - handle request data, forms (POST, PUT, DELETE) etc
+* [larvitsession](https://www.npmjs.com/package/larvitsession) - sessions to remember data between requests
 
 ## Middleware functions
 

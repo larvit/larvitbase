@@ -24,19 +24,23 @@ test('Basic request', function (t) {
 
 	// Start server
 	tasks.push(function (cb) {
+		function errTrigger(req, res, cb) {
+			if (req.url === '/foo') {
+				return cb(new Error('deng'));
+			}
+			cb();
+		}
+
+		function helloWorldWriter(req, res, cb) {
+			res.end('Hello world');
+			cb();
+		}
+
 		app = new App({
 			'httpOptions':	port,
 			'middleware': [
-				function (req, res, cb) {
-					if (req.url === '/foo') {
-						return cb(new Error('deng'));
-					}
-					cb();
-				},
-				function (req, res, cb) {
-					res.end('Hello world');
-					cb();
-				}
+				errTrigger,
+				helloWorldWriter
 			]
 		}, cb);
 
@@ -79,9 +83,28 @@ test('Basic request', function (t) {
 	});
 });
 
-test('Starting witout middleware', function (t) {
+test('Starting without middleware', function (t) {
 	new App({}, function (err) {
 		t.equal(err instanceof Error, true);
 		t.end();
 	});
+});
+
+test('Starting with bogus options', function (t) {
+	const	weirdOpts	= {};
+
+	weirdOpts.woo	= weirdOpts;
+
+	new App(weirdOpts, function (err) {
+		t.equal(err instanceof Error, true);
+		t.end();
+	});
+});
+
+test('Check so hrTimeToMs works when using a param', function (t) {
+	const	app	= new App({'middleware': [function(req, res) {res.end('boll');}]});
+
+	t.equal(app.hrTimeToMs([4466, 908020700]), 4466908.0207);
+	t.end();
+	app.httpServer.close();
 });
