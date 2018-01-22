@@ -8,6 +8,7 @@ const	topLogPrefix	= 'larvitbase: ' + __filename + ' - ',
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+// Remove when node 6 is no longer supported
 if ( ! String.prototype.padStart) {
 	String.prototype.padStart = function padStart(targetLength, padString) {
 		targetLength	= targetLength >> 0; // Truncate if number or convert non-number to 0;
