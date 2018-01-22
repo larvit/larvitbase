@@ -6,6 +6,24 @@ const	topLogPrefix	= 'larvitbase: ' + __filename + ' - ',
 	http	= require('http'),
 	log	= require('winston');
 
+// https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+if ( ! String.prototype.padStart) {
+	String.prototype.padStart = function padStart(targetLength, padString) {
+		targetLength	= targetLength >> 0; // Truncate if number or convert non-number to 0;
+		padString	= String((typeof padString !== 'undefined' ? padString : ' '));
+		if (this.length > targetLength) {
+			return String(this);
+		} else {
+			targetLength	= targetLength - this.length;
+			if (targetLength > padString.length) {
+				padString += padString.repeat(targetLength / padString.length); // Append to original to ensure we are longer than needed
+			}
+			return padString.slice(0, targetLength) + String(this);
+		}
+	};
+}
+
 function App(options, cb) {
 	const	logPrefix	= topLogPrefix + 'App() - ',
 		that	= this;
