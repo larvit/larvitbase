@@ -42,6 +42,18 @@ new App({
 
 ### A bit more usable example
 
+See [here](./docs/01_simple.md).
+
+#### Preparations
+
+You'll need ejs installed as well.
+
+```bash
+npm i ejs;
+```
+
+#### Files
+
 index.js:
 
 ```javascript
