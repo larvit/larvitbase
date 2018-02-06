@@ -4,15 +4,6 @@ In this document you will learn to:
 
 * Create static routes
 * Create separate controller files for your URLs
-* Using EJS as template engine
-
-## Install dependencies
-
-We will need larvitbase (doh) and [ejs](http://ejs.co/)
-
-```bash
-npm i --save larvitbase ejs;
-```
 
 ## App base file; index.js
 
@@ -21,7 +12,6 @@ npm i --save larvitbase ejs;
 
 const appOptions = {},
       App        = require('larvitbase'),
-      ejs        = require('ejs'),
       fs         = require('fs');
 
 let app;
@@ -31,12 +21,10 @@ let app;
 function router(req, res, cb) {
 	if (req.url === '/') {
 		req.controllerFullPath	= __dirname + '/controllers/default.js';
-		req.templateFullPath	= __dirname + '/public/templates/default.ejs';
 	} else if (req.url === '/foo') {
 		req.controllerFullPath	= __dirname + '/controllers/foo.js';
-		req.templateFullPath	= __dirname + '/public/templates/foo.ejs';
 	} else {
-		req.templateFullPath	= __dirname + '/public/templates/404.ejs';
+		req.controllerFullPath	= __dirname + '/controllers/404.js';
 	}
 	cb();
 }
@@ -56,18 +44,15 @@ appOptions.middleware.push(router);
 // Run the controller if the router resolved one for us
 // Controllers should populate res.data for this example to work
 appOptions.middleware.push(function controller(req, res, cb) {
-	if ( ! req.controllerFullPath) return cb(); // Just stop here if we have no controllerFullPath
+	// Just stop here if we have no controllerFullPath
+	if ( ! req.controllerFullPath) {
+		res.end('No controllerFullPath provided');
+		return cb();
+	}
 
 	// Require the controller file and run it as a function directly
 	// See below for example on how to create your controller files
 	require(req.controllerFullPath)(req, res, cb);
-});
-
-// Render the template21
-
-// Send the data to the client
-appOptions.middleware.push(function sendToClient(req, res, cb) {
-	res.end(res.data);
 });
 
 // Start the app
@@ -78,9 +63,38 @@ app.on('error', function (err, req, res) {
 	res.statusCode = 500;
 	res.end('Internal server error: ' + err.message);
 });
+```
 
-// Exposed stuff
-//app.httpServer	- the node http server instance
-//app.options	- the appOptions as used by the app
-//app.timing	- how long each middleware as well as the complete req/res took
+## Controller: default.js
+
+```javascript
+'use strict';
+
+exports = module.exports = function controllerDefault(req, res, cb) {
+	res.end('This is the default page!');
+	cb();
+}
+```
+
+## Controller: foo.js
+
+```javascript
+'use strict';
+
+exports = module.exports = function controllerFoo(req, res, cb) {
+	res.end('Foo custom page');
+	cb();
+}
+```
+
+## Controller: 404.js
+
+```javascript
+'use strict';
+
+exports = module.exports = function controller404(req, res, cb) {
+	res.statusCode	= 404;
+	res.end('404 Not Found');
+	cb();
+}
 ```
