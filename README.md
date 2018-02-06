@@ -40,9 +40,9 @@ new App({
 });
 ```
 
-### A bit more usable example
+### A bit more usable examples
 
-See [here](./docs/01_simple.md).
+[Simple, static router and controllers](./docs/01_simple.md). 
 
 #### Preparations
 
