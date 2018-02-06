@@ -5,20 +5,14 @@ In this document you will learn to:
 * Create static routes
 * Create separate controller files for your URLs
 
-## App base file; index.js
+## Router: router.js
 
 ```javascript
 'use strict';
 
-const appOptions = {},
-      App        = require('larvitbase'),
-      fs         = require('fs');
-
-let app;
-
 // Routing
 // Translate an url into a path to a controllers
-function router(req, res, cb) {
+exports = module.exports = function router(req, res, cb) {
 	if (req.url === '/') {
 		req.controllerFullPath	= __dirname + '/controllers/default.js';
 	} else if (req.url === '/foo') {
@@ -28,6 +22,19 @@ function router(req, res, cb) {
 	}
 	cb();
 }
+```
+
+## App base file; index.js
+
+```javascript
+'use strict';
+
+const appOptions = {},
+      router     = require(__dirname + '/router.js'),
+      App        = require('larvitbase'),
+      fs         = require('fs');
+
+let app;
 
 appOptions.httpOptions = 8001; // Will be sent directly to nodes
 //                                http.createServer().listen(##here##) For

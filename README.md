@@ -23,6 +23,8 @@ npm i larvitbase
 
 ## Usage
 
+In case you're building a full webb system, you probably want to go directly to [larvitbase-www](https://github.com/larvit/larvitbase-www) or if you're building an API, you might want to look at [larvitbase-api](https://github.com/larvit/larvitbase-api). Both of these is larvitbase plus some middlewares to handle the basics of each scenario.
+
 ### Minimal basic example
 
 This will create a http server on port 8001 that will print "Hello world" whatever you send in.
@@ -42,113 +44,11 @@ new App({
 
 ### A bit more usable examples
 
-[Simple, static router and controllers](./docs/01_simple.md). 
-
-#### Preparations
-
-You'll need ejs installed as well.
-
-```bash
-npm i ejs;
-```
-
-#### Files
-
-index.js:
-
-```javascript
-'use strict';
-
-const appOptions = {},
-      App        = require('larvitbase'),
-      ejs        = require('ejs'),
-      fs         = require('fs');
-
-let	app;
-
-// Translate an url into a path to a controller
-function router(req, res, cb) {
-	if (req.url === '/') {
-		req.controllerPath	= __dirname + '/controllers/default.js';
-	} else if (req.url === '/foo') {
-		req.controllerPath	= __dirname + '/controllers/foo.js';
-	} else {
-		req.controllerPath	= __dirname + '/controllers/404.js';
-	}
-	cb();
-}
-
-appOptions.httpOptions = 8001; // Will be sent directly to nodes
-//                                http.createServer().listen(##here##) For
-//                                more info, see:
-//                                https://nodejs.org/api/http.html#http_class_http_server
-
-// Without any middleware, nothing will ever happend and all calls will be left hanging
-// Middle ware functions are compatible with Express middleware functions
-appOptions.middleware = [];
-
-appOptions.middleware.push(router);
-
-// Run the controller that the router resolved for us
-// Controllers should populate res.data for this example to work
-appOptions.middleware.push(function controller(req, res, cb) {
-	require(req.controllerPath)(req, res, cb);
-});
-
-// Send the data to the client
-appOptions.middleware.push(function sendToClient(req, res, cb) {
-	res.end(res.data);
-});
-
-// Start the app
-app = new App(appOptions);
-
-// Handle errors in one of the middleweres during a request
-app.on('error', function (err, req, res) {
-	res.statusCode = 500;
-	res.end('Internal server error: ' + err.message);
-});
-
-// Exposed stuff
-//app.httpServer	- the node http server instance
-//app.options	- the appOptions as used by the app
-//app.timing	- how long each middleware as well as the complete req/res took
-```
-
-controllers/foo.js:
-
-```javascript
-'use strict';
-
-exports = module.exports = function (req, res, cb) {
-	res.data = `<!doctype html>
-<html>
-	<head>
-		<title>Hello</title>
-	</head>
-	<body>
-		<h1>this is static</h1>
-	</body>
-</html>`;
-	cb();
-};
-```
-
-public/templates/foo.ejs:
-
-```html
-<!doctype html>
-<html>
-	<head>
-		<title><%= title %></title>
-	</head>
-	<body>
-		<h1><%= heading %></h1>
-	</body>
-</html>
-```
-
-Now a request to /foo would render the HTML above.
+[Static router and controllers](./docs/01_simple.md)
+[Templates](./doc/02_templates.md)
+[Forms](./doc/03_forms.md)
+[Dynamic router](./doc/04_router.md)
+[Static files](./doc/05_staticFiles.md)
 
 ### Example with some custom, external libraries
 
