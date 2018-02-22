@@ -1,30 +1,21 @@
-# Simple first application
+# Larvitbase simple first application tutorial
 
 In this document you will learn to:
 
 * Create static routes
 * Create separate controller files for your URLs
 
-## Router: router.js
+## Install dependencies
 
-```javascript
-'use strict';
+In a new folder, do the following:
 
-// Routing
-// Translate an url into a path to a controllers
-exports = module.exports = function router(req, res, cb) {
-	if (req.url === '/') {
-		req.controllerFullPath	= __dirname + '/controllers/default.js';
-	} else if (req.url === '/foo') {
-		req.controllerFullPath	= __dirname + '/controllers/foo.js';
-	} else {
-		req.controllerFullPath	= __dirname + '/controllers/404.js';
-	}
-	cb();
-}
+```bash
+npm i larvitbase
 ```
 
-## App base file; index.js
+## Create the files
+
+### index.js - App base file
 
 ```javascript
 'use strict';
@@ -49,7 +40,6 @@ appOptions.middleware = [];
 appOptions.middleware.push(router);
 
 // Run the controller if the router resolved one for us
-// Controllers should populate res.data for this example to work
 appOptions.middleware.push(function controller(req, res, cb) {
 	// Just stop here if we have no controllerFullPath
 	if ( ! req.controllerFullPath) {
@@ -72,7 +62,28 @@ app.on('error', function (err, req, res) {
 });
 ```
 
-## Controller: default.js
+### router.js
+
+Used to route incoming requests
+
+```javascript
+'use strict';
+
+// Routing
+// Translate an url into a path to a controllers
+exports = module.exports = function router(req, res, cb) {
+	if (req.url === '/') {
+		req.controllerFullPath	= __dirname + '/controllers/default.js';
+	} else if (req.url === '/foo') {
+		req.controllerFullPath	= __dirname + '/controllers/foo.js';
+	} else {
+		req.controllerFullPath	= __dirname + '/controllers/404.js';
+	}
+	cb();
+}
+```
+
+### controllers/default.js
 
 ```javascript
 'use strict';
@@ -83,7 +94,7 @@ exports = module.exports = function controllerDefault(req, res, cb) {
 }
 ```
 
-## Controller: foo.js
+### controllers/foo.js
 
 ```javascript
 'use strict';
@@ -94,7 +105,7 @@ exports = module.exports = function controllerFoo(req, res, cb) {
 }
 ```
 
-## Controller: 404.js
+### controllers/404.js
 
 ```javascript
 'use strict';
@@ -105,3 +116,11 @@ exports = module.exports = function controller404(req, res, cb) {
 	cb();
 }
 ```
+
+## Test your application
+
+From the path of your application, type:
+
+    node ./index.js
+
+Then go to a browser and go to http://localhost:8001 and you should see "This is the default page!". Test the URL:s /foo and /something as well and see what happends.
