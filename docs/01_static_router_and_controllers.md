@@ -1,4 +1,4 @@
-# Larvitbase simple first application tutorial
+# 01. Static router and controllers
 
 In this document you will learn to:
 

@@ -44,11 +44,11 @@ new App({
 
 ### A bit more usable examples
 
-[Static router and controllers](./docs/01_simple.md)
-[Templates](./doc/02_templates.md)
-[Forms](./doc/03_forms.md)
-[Dynamic router](./doc/04_router.md)
-[Static files](./doc/05_staticFiles.md)
+[01. Static router and controllers](./docs/01_static_router_and_controllers.md)  
+[02. Templates](./doc/02_templates.md)  
+[03. Forms](./doc/03_forms.md)  
+[04. Dynamic router](./doc/04_router.md)  
+[05. Static files](./doc/05_staticFiles.md)  
 
 ### Example with some custom, external libraries
 
