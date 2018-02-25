@@ -14,6 +14,7 @@
     * [Your own router](#roll-your-own)
     * [larvitrouter](#larvitrouter)
   * [Templates](#templates)
+    * [Files](#templateFiles)
   * [Forms](#forms)
   * [Static Files](#static-files)
   * [Error handling](#error-handling)
@@ -202,6 +203,53 @@ exports = module.exports = function controllerFoo(req, res, cb) {
 
 ### Templates
 [Top](#top)
+
+In this section we're going to implement [EJS](http://ejs.co/) template engine.
+
+First install dependencies:
+
+```bash
+npm i larvitbase ejs
+```
+
+#### <a name="templateFiles">Files</a>
+[Top](#top)
+
+##### index.js
+
+```javascript
+const ejs	= require('ejs'),
+      App = require('larvitbase');
+
+function controller(req, res, cb) {
+	// Set some different data depending on URL
+	res.data	= {};
+
+	if (req.url === '/') {
+		res.data.someText	= 'First page';
+	} else if (req.url === '/foo') {
+		res.data.someText	= 'A sub page';
+	} else {
+		res.data.someText	= 'No page';
+	}
+
+	cb();
+}
+
+function renderTemplate(req, res, cb) {
+	res.body	= ejs.render('<html><body><h1><%= someText %></h1></body></html>', res.data);
+	res.end(res.body);
+	cb();
+}
+
+new App({
+	'httpOptions': 8001, // Listening port
+	'middleware': [
+		controller,
+		renderTemplate
+	]
+});
+```
 
 ### Forms
 [Top](#top)
