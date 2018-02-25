@@ -254,8 +254,100 @@ new App({
 ### Forms
 [Top](#top)
 
+To parse forms (and file uploads, url parameters and more) we can use [larvitreqparser](https://github.com/larvit/larvitreqparser).
+
+Install dependencies:
+
+```bash
+npm i larvitbase larvitreqparser
+```
+
+#### index.js
+
+```javascript
+const ReqParser	= require('larvitreqparser'),
+      reqParser = new ReqParser(),
+      App       = require('larvitbase');
+
+function controller(req, res, cb) {
+	res.body = '<html><body><form method="post">';
+	res.body += '<p>Write something: <input name="foo" /></p>';
+	if (req.formFields && req.formFields.foo) {
+		res.body += '<p>Something was written: "' + req.formFields.foo + '"</p>'
+	}
+	res.body += '<p><button type="submit">Click me</button></p>';
+	res.body += '</body></html>';
+
+	res.end(res.body);
+	cb();
+}
+
+new App({
+	'httpOptions': 8001, // Listening port
+	'middleware': [
+		reqParser.parse.bind(reqParser),
+		controller
+	]
+});
+```
+
 ### Static Files
 [Top](#top)
+
+To feed static files, we are going to use a [router](https://github.com/larvit/larvitrouter) to determine if the URL points to a static file, and then [send](https://github.com/pillarjs/send) to stream the file to the client.
+
+Install dependencies:
+
+```bash
+npm i larvitbase larvitrouter send
+```
+
+#### index.js
+
+```javascript
+const Router = require('larvitrouter'),
+      router = new Router({'staticsPath': __dirname + '/public'}), // This is the default, but we're explicit here
+      send   = require('send'),
+      App    = require('larvitbase');
+
+function runRouter(req, res, cb) {
+	router.resolve(req.url, function (err, result) {
+		req.routeResult	= result;
+		cb(err);
+	});
+}
+
+function controller(req, res, cb) {
+
+	// Static file found! Stream it to the client.
+	if (req.routeResult.staticFullPath) {
+		send(req, req.routeResult.staticFullPath).pipe(res);
+
+		// End the controller here, nothing more should be sent to the client
+		return cb();
+	}
+
+	// What to show if no static file is found:
+	res.body = '<html><body><h1>Show a static file:</h1>';
+	res.body += '<p><a href="foo.txt">foo.txt</a></p>';
+	res.body += '</body></html>';
+
+	res.end(res.body);
+	cb();
+}
+
+new App({
+	'httpOptions': 8001, // Listening port
+	'middleware': [
+		runRouter,
+		controller
+	]
+});
+```
+
+#### public/foo.txt
+
+Just save a text file with whatever content in hour applications path + public/foo.txt
 
 ### Error handling
 [Top](#top)
