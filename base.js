@@ -206,6 +206,7 @@ exports = module.exports = function (customOptions) {
 			req.rawBody	= [];
 
 			form	= new formidable.IncomingForm();
+			form.maxFileSize	= 300 * 1024 * 1024;
 			form.keepExtensions	= true;
 
 			// Use formidable to handle files but qs to handle formdata
