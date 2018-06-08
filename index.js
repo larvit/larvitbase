@@ -48,6 +48,10 @@ function App(options, cb) {
 		that.handleReq(req, res);
 	});
 
+	that.httpServer.on('listening', function () {
+		log.info(logPrefix + 'http server listening on port ' + that.httpServer.address().port);
+	});
+
 	that.httpServer.listen(that.options.httpOptions, cb);
 }
 
