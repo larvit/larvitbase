@@ -12,7 +12,7 @@ test('Basic request', function (t) {
 	let	port,
 		app;
 
-	t.timeoutAfter(100);
+	t.timeoutAfter(200);
 
 	// Get free port
 	tasks.push(function (cb) {
