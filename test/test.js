@@ -90,6 +90,13 @@ test('Starting without middleware', function (t) {
 	});
 });
 
+test('Starting without any options at all', function (t) {
+	new App(undefined, function (err) {
+		t.equal(err instanceof Error, true);
+		t.end();
+	});
+});
+
 test('Starting with bogus options', function (t) {
 	const	weirdOpts	= {};
 
@@ -102,7 +109,7 @@ test('Starting with bogus options', function (t) {
 });
 
 test('Check so hrTimeToMs works when using a param', function (t) {
-	const	app	= new App({'middleware': [function(req, res) {res.end('boll');}]});
+	const	app	= new App({'middleware': [function (req, res) {res.end('boll');}]});
 
 	t.equal(app.hrTimeToMs([4466, 908020700]), 4466908.0207);
 	t.end();

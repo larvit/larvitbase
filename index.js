@@ -38,11 +38,22 @@ function App(options, cb) {
 
 	that.options	= options;
 
-	if ( ! that.options || ! Array.isArray(that.options.middleware)) {
+	if ( ! that.options) {
+		that.options	= {};
+	}
+
+	// Backwards compatible with 2.0 and 2.1
+	if (that.options.middleware) {
+		that.options.middlewares	= that.options.middleware;
+	}
+
+	if ( ! Array.isArray(that.options.middlewares)) {
 		const	err	= new Error('At least one middleware is required');
 		log.error(logPrefix + err.message);
 		return cb(err);
 	}
+
+	that.middlewares	= that.options.middlewares;
 
 	that.httpServer = http.createServer(function (req, res) {
 		that.handleReq(req, res);
@@ -82,10 +93,10 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 	const	logPrefix	= topLogPrefix + 'runMiddleware() - ',
 		that	= this;
 
-	if (that.options.middleware[nr]) {
+	if (that.middlewares[nr]) {
 		const	middlewareStart	= that.hrTimeToMs();
 
-		that.options.middleware[nr](req, res, function (err) {
+		that.middlewares[nr](req, res, function (err) {
 			const	runTime	= (that.hrTimeToMs() - middlewareStart).toFixed(3);
 
 			if (err) {
@@ -95,9 +106,9 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 
 			req.timing['middleware_' + String(nr).padStart(3, '0')] = {
 				'runTime':	runTime,
-				'name':	that.options.middleware[nr].name
+				'name':	that.middlewares[nr].name
 			};
-			log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' middleware_' + String(nr).padStart(3, '0') + ' (' + that.options.middleware[nr].name + '): ' + runTime);
+			log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' middleware_' + String(nr).padStart(3, '0') + ' (' + that.middlewares[nr].name + '): ' + runTime);
 
 			// Run the next middleware
 			that.runMiddleware(nr + 1, req, res);

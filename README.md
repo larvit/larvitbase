@@ -59,7 +59,7 @@ const App = require('larvitbase');
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		function (req, res) {
 			res.end('Hello world');
 		}
@@ -112,7 +112,7 @@ function notFound(req, res, cb) {
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		router,	// First run the router
 		runController	// Then run the routed controller
 	]
@@ -168,7 +168,7 @@ function runController(req, res, cb) {
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		runRouter,
 		runController
 	]
@@ -244,7 +244,7 @@ function renderTemplate(req, res, cb) {
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		controller,
 		renderTemplate
 	]
@@ -284,7 +284,7 @@ function controller(req, res, cb) {
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		reqParser.parse.bind(reqParser),
 		controller
 	]
@@ -338,7 +338,7 @@ function controller(req, res, cb) {
 
 new App({
 	'httpOptions': 8001, // Listening port
-	'middleware': [
+	'middlewares': [
 		runRouter,
 		controller
 	]
@@ -370,11 +370,10 @@ app = new App({
 
 // Handle errors in one of the middleweres during a request
 app.on('error', function (err, req, res) {
-	res.statusCode = 500;
+	res.statusCode	= 500;
 	res.end('Internal server error: ' + err.message);
 });
 ```
-
 
 ## Logging
 [Top](#top)
