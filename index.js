@@ -25,16 +25,11 @@ if ( ! String.prototype.padStart) {
 	};
 }
 
-function App(options, cb) {
+function App(options) {
 	const	logPrefix	= topLogPrefix + 'App() - ',
 		that	= this;
 
-	try {
-		log.debug(logPrefix + 'Started with options: ' + JSON.stringify(options));
-	} catch (err) {
-		log.error(logPrefix + 'Invalid options, could not JSON.stringify()');
-		return cb(err);
-	}
+	log.debug(logPrefix + 'Started with options: ' + JSON.stringify(options));
 
 	that.options	= options;
 
@@ -47,23 +42,7 @@ function App(options, cb) {
 		that.options.middlewares	= that.options.middleware;
 	}
 
-	if ( ! Array.isArray(that.options.middlewares)) {
-		const	err	= new Error('At least one middleware is required');
-		log.error(logPrefix + err.message);
-		return cb(err);
-	}
-
 	that.middlewares	= that.options.middlewares;
-
-	that.httpServer = http.createServer(function (req, res) {
-		that.handleReq(req, res);
-	});
-
-	that.httpServer.on('listening', function () {
-		log.info(logPrefix + 'http server listening on port ' + that.httpServer.address().port);
-	});
-
-	that.httpServer.listen(that.options.httpOptions, cb);
 }
 
 App.prototype = Object.create(EventEmitter.prototype);
@@ -118,6 +97,27 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 		req.timing.totReqTime	= (req.timing.reqEnd - req.timing.reqStart).toFixed(3);
 		log.verbose(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, run time: ' + req.timing.totReqTime + 'ms');
 	}
+};
+
+App.prototype.start = function start(cb) {
+	const	logPrefix	= topLogPrefix + 'start() - ',
+		that	= this;
+
+	if ( ! Array.isArray(that.middlewares)) {
+		const	err	= new Error('At least one middleware is required');
+		log.error(logPrefix + err.message);
+		return cb(err);
+	}
+
+	that.httpServer = http.createServer(function (req, res) {
+		that.handleReq(req, res);
+	});
+
+	that.httpServer.on('listening', function () {
+		log.info(logPrefix + 'http server listening on port ' + that.httpServer.address().port);
+	});
+
+	that.httpServer.listen(that.options.httpOptions, cb);
 };
 
 exports = module.exports = App;

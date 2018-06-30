@@ -42,7 +42,9 @@ test('Basic request', function (t) {
 				errTrigger,
 				helloWorldWriter
 			]
-		}, cb);
+		});
+
+		app.start(cb);
 
 		app.on('error', function (err, req, res) {
 			res.statusCode	= 500;
@@ -84,14 +86,18 @@ test('Basic request', function (t) {
 });
 
 test('Starting without middleware', function (t) {
-	new App({}, function (err) {
+	const app = new App({});
+
+	app.start(function (err) {
 		t.equal(err instanceof Error, true);
 		t.end();
 	});
 });
 
 test('Starting without any options at all', function (t) {
-	new App(undefined, function (err) {
+	const app = new App();
+
+	app.start(function (err) {
 		t.equal(err instanceof Error, true);
 		t.end();
 	});
@@ -102,16 +108,23 @@ test('Starting with bogus options', function (t) {
 
 	weirdOpts.woo	= weirdOpts;
 
-	new App(weirdOpts, function (err) {
+	try {
+		new App(weirdOpts);
+		throw new Error('No error was emitted when instancing app');
+	} catch (err) {
 		t.equal(err instanceof Error, true);
 		t.end();
-	});
+	}
 });
 
 test('Check so hrTimeToMs works when using a param', function (t) {
 	const	app	= new App({'middleware': [function (req, res) {res.end('boll');}]});
 
-	t.equal(app.hrTimeToMs([4466, 908020700]), 4466908.0207);
-	t.end();
-	app.httpServer.close();
+	app.start(function (err) {
+		if (err) throw err;
+
+		t.equal(app.hrTimeToMs([4466, 908020700]), 4466908.0207);
+		t.end();
+		app.httpServer.close();
+	});
 });

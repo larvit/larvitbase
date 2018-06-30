@@ -55,15 +55,19 @@ In case you're building a full webb system, you probably want to go directly to 
 This will create a http server on port 8001 that will print "Hello world" whatever you send in.
 
 ```javascript
-const App = require('larvitbase');
+const	App	= require('larvitbase');
 
-new App({
+let app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		function (req, res) {
 			res.end('Hello world');
 		}
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -80,7 +84,9 @@ There is no built in routing, but it is easy to make your own or use the more fu
 Something like this:
 
 ```javascript
-const App = require('larvitbase');
+const	App	= require('larvitbase');
+
+let	app;
 
 function router(req, res, cb) {
 	if (req.url === '/') {
@@ -110,12 +116,16 @@ function notFound(req, res, cb) {
 	res.end('The URL matched no controller. Ledsen i ögat. :(');
 }
 
-new App({
+app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		router,	// First run the router
 		runController	// Then run the routed controller
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -145,6 +155,8 @@ const Router = require('larvitrouter'),
       router = new Router(),
       App    = require('larvitbase');
 
+let	app;
+
 function runRouter(req, res, cb) {
 	router.resolve(req.url, function (err, result) {
 		req.routeResult = result; // Store the route result on the request so we can access it from elsewhere
@@ -166,12 +178,16 @@ function runController(req, res, cb) {
 	}
 }
 
-new App({
+app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		runRouter,
 		runController
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -221,6 +237,8 @@ npm i larvitbase ejs
 const ejs	= require('ejs'),
       App = require('larvitbase');
 
+let	app;
+
 function controller(req, res, cb) {
 	// Set some different data depending on URL
 	res.data	= {};
@@ -242,12 +260,16 @@ function renderTemplate(req, res, cb) {
 	cb();
 }
 
-new App({
+app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		controller,
 		renderTemplate
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -269,6 +291,8 @@ const ReqParser	= require('larvitreqparser'),
       reqParser = new ReqParser(),
       App       = require('larvitbase');
 
+let	app;
+
 function controller(req, res, cb) {
 	res.body = '<html><body><form method="post">';
 	res.body += '<p>Write something: <input name="foo" /></p>';
@@ -282,12 +306,16 @@ function controller(req, res, cb) {
 	cb();
 }
 
-new App({
+app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		reqParser.parse.bind(reqParser),
 		controller
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -309,6 +337,8 @@ const Router = require('larvitrouter'),
       router = new Router({'staticsPath': __dirname + '/public'}), // This is the default, but we're explicit here
       send   = require('send'),
       App    = require('larvitbase');
+
+let	app;
 
 function runRouter(req, res, cb) {
 	router.resolve(req.url, function (err, result) {
@@ -336,12 +366,16 @@ function controller(req, res, cb) {
 	cb();
 }
 
-new App({
+app = new App({
 	'httpOptions': 8001, // Listening port
 	'middlewares': [
 		runRouter,
 		controller
 	]
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
@@ -372,6 +406,10 @@ app = new App({
 app.on('error', function (err, req, res) {
 	res.statusCode	= 500;
 	res.end('Internal server error: ' + err.message);
+});
+
+app.start(function (err) {
+	if (err) throw err;
 });
 ```
 
