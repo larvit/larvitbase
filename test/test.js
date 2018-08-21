@@ -1,29 +1,33 @@
 'use strict';
 
-const	freeport	= require('freeport'),
-	request	= require('request'),
-	async	= require('async'),
-	test	= require('tape'),
-	App	= require(__dirname + '/../index.js');
+const freeport = require('freeport');
+const request  = require('request');
+const LUtils   = require('larvitutils');
+const lUtils   = new LUtils();
+const async    = require('async');
+const test     = require('tape');
+const log      = new lUtils.Log('none');
+const App      = require(__dirname + '/../index.js');
 
 test('Basic request', function (t) {
-	const	tasks	= [];
+	const tasks = [];
 
-	let	port,
-		app;
+	let port;
+	let app;
 
 	t.timeoutAfter(200);
 
 	// Get free port
 	tasks.push(function (cb) {
 		freeport(function (err, result) {
-			port	= result;
+			port = result;
 			cb(err);
 		});
 	});
 
 	// Start server
 	tasks.push(function (cb) {
+		/* eslint-disable require-jsdoc */
 		function errTrigger(req, res, cb) {
 			if (req.url === '/foo') {
 				return cb(new Error('deng'));
@@ -35,10 +39,12 @@ test('Basic request', function (t) {
 			res.end('Hello world');
 			cb();
 		}
+		/* eslint-enable require-jsdoc */
 
 		app = new App({
-			'httpOptions':	port,
-			'middleware': [
+			'log':         log,
+			'httpOptions': port,
+			'middleware':  [
 				errTrigger,
 				helloWorldWriter
 			]
@@ -47,7 +53,7 @@ test('Basic request', function (t) {
 		app.start(cb);
 
 		app.on('error', function (err, req, res) {
-			res.statusCode	= 500;
+			res.statusCode = 500;
 			res.end('Internal server error: ' + err.message);
 		});
 	});
@@ -78,15 +84,13 @@ test('Basic request', function (t) {
 	});
 
 	async.series(tasks, function (err) {
-		if (err) {
-			t.fail('err: ' + err.message);
-		}
+		if (err) t.fail('err: ' + err.message);
 		t.end();
 	});
 });
 
 test('Starting without middleware', function (t) {
-	const app = new App({});
+	const app = new App({'log': log});
 
 	app.start(function (err) {
 		t.equal(err instanceof Error, true);
@@ -104,9 +108,9 @@ test('Starting without any options at all', function (t) {
 });
 
 test('Starting with bogus options', function (t) {
-	const	weirdOpts	= {};
+	const weirdOpts = {};
 
-	weirdOpts.woo	= weirdOpts;
+	weirdOpts.woo = weirdOpts;
 
 	try {
 		new App(weirdOpts);
@@ -118,11 +122,13 @@ test('Starting with bogus options', function (t) {
 });
 
 test('Check so hrTimeToMs works when using a param', function (t) {
-	const	app	= new App({'middleware': [function (req, res) {res.end('boll');}]});
+	const app = new App({
+		'middleware': [function (req, res) { res.end('boll'); }],
+		'log':        log
+	});
 
 	app.start(function (err) {
 		if (err) throw err;
-
 		t.equal(app.hrTimeToMs([4466, 908020700]), 4466908.0207);
 		t.end();
 		app.httpServer.close();

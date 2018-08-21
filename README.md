@@ -22,7 +22,6 @@
 * [Middleware Functions](#middleware-functions)
   * [Larvit middlewares](#larvit-middlewares)
 
-
 ## What is it?
 [Top](#top)
 
@@ -416,7 +415,9 @@ app.start(function (err) {
 ## Logging
 [Top](#top)
 
-This module logs using [winston](https://www.npmjs.com/package/winston), please consult the documentation for that package for details on how to configure winson. No configuration is needed to make larvitbase run.
+The App takes a log option and it requires it to be an object with the following methods: silly(), debug(), verbose(), info(), warn() and error().
+
+Historically we've used [winston](https://www.npmjs.com/package/winston), but any object with the above methods will work fine. If no log instance is supplied, an instance of larvitutils [Log](https://github.com/larvit/larvitutils#simple-logger) will be used with level "info".
 
 Log levels used:
 

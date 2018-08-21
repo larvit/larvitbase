@@ -1,6 +1,6 @@
 {
   "name": "larvitbase",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "http application base framework",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,7 @@
     "tape-eslint": "^1.2.1"
   },
   "dependencies": {
-    "uuid": "^3.3.2",
-    "winston": "^2.4.0"
+    "larvitutils": "^2.1.0",
+    "uuid": "^3.3.2"
   }
 }
