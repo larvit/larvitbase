@@ -26,14 +26,14 @@
   },
   "homepage": "https://github.com/larvit/larvitbase#readme",
   "devDependencies": {
-    "async": "^2.6.0",
-    "coveralls": "^3.0.2",
-    "eslint": "^5.0.1",
-    "freeport": "^1.0.5",
-    "istanbul": "^0.4.5",
-    "request": "^2.83.0",
-    "tape": "^4.8.0",
-    "tape-eslint": "^1.2.1"
+    "async": "2.6.1",
+    "coveralls": "3.0.2",
+    "eslint": "5.4.0",
+    "freeport": "1.0.5",
+    "istanbul": "0.4.5",
+    "request": "2.88.0",
+    "tape": "4.9.1",
+    "tape-eslint": "1.2.1"
   },
   "dependencies": {
     "larvitutils": "^2.1.0",
