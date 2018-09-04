@@ -1,6 +1,7 @@
 'use strict';
 
 const	topLogPrefix	= 'larvitbase: base.js: ',
+	circularJson	= require('circular-json'),
 	formidable	= require('formidable'),
 	Lviews	= require('larvitviews'),
 	events	= require('events'),
@@ -70,7 +71,7 @@ exports = module.exports = function (customOptions) {
 			// Check for session data from previous call to send to this one and then erase
 			if (req.session !== undefined && req.session.data !== undefined && req.session.data.singleCallData !== undefined) {
 				try {
-					log.debug(logPrefix + 'Session singleCallData found, merging into controller data. singleCallData: ' + JSON.stringify(req.session.data.singleCallData));
+					log.debug(logPrefix + 'Session singleCallData found, merging into controller data. singleCallData: ' + circularJson.stringify(req.session.data.singleCallData));
 					_.merge(res.controllerData, req.session.data.singleCallData);
 					delete req.session.data.singleCallData;
 				} catch (err) {
