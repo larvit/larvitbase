@@ -61,6 +61,7 @@ App.prototype.handleReq = function handleReq(req, res) {
 	const that      = this;
 
 	req.uuid = uuidv4();
+	req.log = that.log;
 
 	that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' started');
 
