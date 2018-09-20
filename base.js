@@ -17,7 +17,6 @@ const	topLogPrefix	= 'larvitbase: base.js: ',
 	_	= require('lodash');
 
 let	options,
-	router,
 	view;
 
 exports = module.exports = function (customOptions) {
@@ -311,7 +310,7 @@ exports = module.exports = function (customOptions) {
 			}
 
 			if (options.beforeware[i] === undefined) {
-				req.routeResult = router.resolve(req.url.split('?')[0]);
+				req.routeResult = returnObj.router.resolve(req.url.split('?')[0]);
 
 				res.sendToClient = returnObj.sendToClient;
 
@@ -474,7 +473,7 @@ exports = module.exports = function (customOptions) {
 
 	log.info(topLogPrefix + 'Creating server on ' + options.host + ':' + options.port);
 
-	router = require('larvitrouter')({
+	returnObj.router = require('larvitrouter')({
 		'customRoutes':	options.customRoutes,
 		'controllersPath':	options.controllersPath,
 		'pubFilePath':	options.pubFilePath
