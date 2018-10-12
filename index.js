@@ -106,7 +106,7 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 	} else {
 		req.timing.reqEnd     = that.hrTimeToMs();
 		req.timing.totReqTime = (req.timing.reqEnd - req.timing.reqStart).toFixed(3);
-		that.log.verbose(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, run time: ' + req.timing.totReqTime + 'ms');
+		that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, run time: ' + req.timing.totReqTime + 'ms');
 	}
 };
 
