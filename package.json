@@ -36,7 +36,7 @@
     "tape-eslint": "1.2.1"
   },
   "dependencies": {
-    "larvitutils": "^2.1.0",
+    "larvitutils": "^3.0.0",
     "uuid": "^3.3.2"
   }
 }
