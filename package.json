@@ -31,7 +31,7 @@
     "eslint": "5.16.0",
     "freeport": "1.0.5",
     "istanbul": "0.4.5",
-    "request": "2.88.0",
+    "request": "2.88.2",
     "tape": "4.13.0",
     "tape-eslint": "1.2.1"
   },
