@@ -2,29 +2,9 @@
 
 const topLogPrefix = 'larvitbase: ' + __filename + ' - ';
 const EventEmitter = require('events').EventEmitter;
-const LUtils       = require('larvitutils');
-const uuidv4       = require('uuid/v4');
+const { Log }      = require('larvitutils');
+const uuid       = require('uuid');
 const http         = require('http');
-
-// https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
-// Remove when node 6 is no longer supported
-if (! String.prototype.padStart) {
-	String.prototype.padStart = function padStart(targetLength, padString) {
-		targetLength = targetLength >> 0; // Truncate if number or convert non-number to 0;
-		padString    = String((typeof padString !== 'undefined' ? padString : ' '));
-		if (this.length > targetLength) {
-			return String(this);
-		} else {
-			targetLength = targetLength - this.length;
-			if (targetLength > padString.length) {
-				padString += padString.repeat(targetLength / padString.length); // Append to original to ensure we are longer than needed
-			}
-
-			return padString.slice(0, targetLength) + String(this);
-		}
-	};
-}
 
 /**
  * App constructor
@@ -38,9 +18,7 @@ function App(options) {
 	that.options = options || {};
 
 	if (! that.options.log) {
-		const lUtils = new LUtils();
-
-		that.options.log = new lUtils.Log();
+		that.options.log = new Log();
 	}
 	that.log = that.options.log;
 
@@ -60,7 +38,7 @@ App.prototype.handleReq = function handleReq(req, res) {
 	const logPrefix = topLogPrefix + 'handleReq() - ';
 	const that      = this;
 
-	req.uuid = uuidv4();
+	req.uuid = uuid.v4();
 	req.log = that.log;
 
 	that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' started');

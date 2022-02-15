@@ -4,7 +4,10 @@
   "description": "http application base framework",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/tape/bin/tape ./test/*"
+    "lint": "eslint *.js test/*.js",
+    "test:unit": "tape 'test/*.js'",
+    "test:cov": "nyc tape 'test/*.js'",
+    "test": "npm run lint && npm run test:cov"
   },
   "repository": {
     "type": "git",
@@ -26,17 +29,15 @@
   },
   "homepage": "https://github.com/larvit/larvitbase#readme",
   "devDependencies": {
-    "async": "2.6.3",
-    "coveralls": "3.1.0",
-    "eslint": "5.16.0",
+    "async": "3.2.3",
+    "eslint": "8.9.0",
     "freeport": "1.0.5",
-    "istanbul": "0.4.5",
+    "nyc": "15.1.0",
     "request": "2.88.2",
-    "tape": "4.13.3",
-    "tape-eslint": "1.2.1"
+    "tape": "5.5.2"
   },
   "dependencies": {
-    "larvitutils": "^2.1.0",
-    "uuid": "^3.3.2"
+    "larvitutils": "5.0.0",
+    "uuid": "8.3.2"
   }
 }
