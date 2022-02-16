@@ -3,3 +3,4 @@ config/db_test.json
 coverage
 node_modules
 npm-debug.log*
+.nyc_output/

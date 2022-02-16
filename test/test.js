@@ -2,11 +2,10 @@
 
 const freeport = require('freeport');
 const request  = require('request');
-const LUtils   = require('larvitutils');
-const lUtils   = new LUtils();
+const { Log }  = require('larvitutils');
 const async    = require('async');
 const test     = require('tape');
-const log      = new lUtils.Log('none');
+const log      = new Log('none');
 const App      = require(__dirname + '/../index.js');
 
 test('Basic request', function (t) {
