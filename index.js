@@ -63,7 +63,7 @@ App.prototype.handleReq = function handleReq(req, res) {
 	req.uuid = uuidv4();
 	req.log = that.log;
 
-	that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' started');
+	that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + that.logUrl(req) + ' started');
 
 	req.timing          = {};
 	req.timing.reqStart = that.hrTimeToMs();
@@ -106,7 +106,7 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 	} else {
 		req.timing.reqEnd     = that.hrTimeToMs();
 		req.timing.totReqTime = (req.timing.reqEnd - req.timing.reqStart).toFixed(3);
-		that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + req.url + ' completed, run time: ' + req.timing.totReqTime + 'ms');
+		that.log.debug(logPrefix + 'req.uuid: ' + req.uuid + ' to url: ' + that.logUrl(req) + ' completed, run time: ' + req.timing.totReqTime + 'ms');
 	}
 };
 
@@ -131,6 +131,11 @@ App.prototype.start = function start(cb) {
 	});
 
 	that.httpServer.listen(that.options.httpOptions, cb);
+};
+
+App.prototype.logUrl = function logUrl(req) {
+	// Do not log password
+	return ! req || ! req.url ? '' : req.url.replace(/password=[^&]*/ig, 'password=xxxxx');
 };
 
 exports = module.exports = App;
