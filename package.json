@@ -37,7 +37,7 @@
     "tape": "5.5.2"
   },
   "dependencies": {
-    "larvitutils": "5.0.0",
+    "larvitutils": "5.0.4",
     "uuid": "8.3.2"
   }
 }
