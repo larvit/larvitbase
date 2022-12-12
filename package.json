@@ -1,6 +1,6 @@
 {
   "name": "larvitbase",
-  "version": "4.0.28",
+  "version": "4.0.29",
   "description": "http application base framework",
   "main": "index.js",
   "scripts": {
@@ -38,6 +38,6 @@
   },
   "dependencies": {
     "larvitutils": "5.1.18",
-    "uuid": "8.3.2"
+    "uuid": "9.0.0"
   }
 }
