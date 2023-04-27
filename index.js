@@ -67,7 +67,7 @@ App.prototype.runMiddleware = function runMiddleware(nr, req, res) {
 			const runTime = (that.hrTimeToMs() - middlewareStart).toFixed(3);
 
 			if (err) {
-				that.log.warn(logPrefix + 'Error running middleware: ' + err.message);
+				that.log.warn(logPrefix + 'Error running middleware: ' + err.stack);
 
 				return that.emit('error', err, req, res);
 			}
