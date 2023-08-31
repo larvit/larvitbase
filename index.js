@@ -12,7 +12,6 @@ const http         = require('http');
  * @param {obj} options {'log': log instance, 'middlewares': array of middlewares}
  */
 function App(options) {
-	const logPrefix = topLogPrefix + 'App() - ';
 	const that      = this;
 
 	that.options = options || {};
@@ -21,8 +20,6 @@ function App(options) {
 		that.options.log = new Log();
 	}
 	that.log = that.options.log;
-
-	that.log.debug(logPrefix + 'Started with options: ' + JSON.stringify(options));
 
 	// Backwards compatible with 2.0 and 2.1
 	if (that.options.middleware) {
