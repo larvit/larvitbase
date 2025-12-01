@@ -1,6 +1,6 @@
 {
   "name": "larvitbase",
-  "version": "4.0.132",
+  "version": "4.0.133",
   "description": "http application base framework",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/larvit/larvitbase#readme",
   "devDependencies": {
     "async": "3.2.6",
-    "eslint": "8.57.1",
+    "eslint": "9.39.1",
     "freeport": "1.0.5",
     "nyc": "17.1.0",
     "request": "2.88.2",
